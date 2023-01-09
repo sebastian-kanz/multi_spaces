@@ -1,0 +1,67 @@
+name: multi_spaces
+description: Decentralized cross-platform storage solution.
+
+# The following line prevents the package from being accidentally published to
+# pub.dev using `flutter pub publish`. This is preferred for private packages.
+publish_to: 'none' # Remove this line if you wish to publish to pub.dev
+
+version: 1.0.0+1
+
+environment:
+  sdk: '>=2.17.0 <3.0.0'
+  
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+  intl: ^0.18.0
+
+  cupertino_icons: ^1.0.2
+
+  equatable: ^2.0.5
+  flutter_envify: ^3.0.1
+  walletconnect_dart: ^0.0.11
+  web3dart: ^2.5.3
+  web3auth_flutter: ^1.0.3
+  qr_flutter: ^4.0.0
+
+  blockchain_provider: 
+    path: './packages/blockchain_provider'
+  blockchain_repository: 
+    path: './packages/blockchain_repository'
+  blockchain_authentication_repository: 
+    path: './packages/blockchain_authentication_repository'
+  user_repository: 
+    path: './packages/user_repository'
+  secure_storage: 
+    path: './packages/secure_storage'
+  url_launcher: ^6.1.7
+  flutter_bloc: ^8.1.1
+  hydrated_bloc: ^9.0.0 
+  json_annotation: ^4.7.0
+  path: ^1.8.3
+  path_provider: ^2.0.11
+  formz: ^0.4.1
+  flutter_secure_storage: ^7.0.1
+  modal_bottom_sheet: ^2.1.2
+  awesome_dialog: ^3.0.2
+  logger: ^1.1.0
+  convert: ^3.1.1
+
+  
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+  flutter_lints: ^2.0.0
+  analyzer: 
+  build_runner: 
+  flutter_envify_generator: 
+  web3dart_builders: ^0.0.2
+
+flutter:
+  uses-material-design: true
+  generate: true
+  assets:
+    - assets/

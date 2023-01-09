@@ -1,0 +1,108 @@
+[
+  {
+    "inputs": [],
+    "name": "closeBucket",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "string[]",
+        "name": "newMetaHashes",
+        "type": "string[]"
+      },
+      {
+        "internalType": "string[]",
+        "name": "newDataHashes",
+        "type": "string[]"
+      },
+      {
+        "internalType": "string[]",
+        "name": "newContainerHashes",
+        "type": "string[]"
+      },
+      {
+        "internalType": "address[]",
+        "name": "parentContainerHashes",
+        "type": "address[]"
+      },
+      {
+        "internalType": "uint256",
+        "name": "contentType",
+        "type": "uint256"
+      }
+    ],
+    "name": "createElements",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "getAll",
+    "outputs": [
+      {
+        "internalType": "address[]",
+        "name": "",
+        "type": "address[]"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "getHistory",
+    "outputs": [
+      {
+        "components": [
+          {
+            "internalType": "address",
+            "name": "elem",
+            "type": "address"
+          },
+          {
+            "internalType": "enum LibElement.OperationType",
+            "name": "operationType",
+            "type": "uint8"
+          },
+          {
+            "internalType": "uint256",
+            "name": "blockNumber",
+            "type": "uint256"
+          }
+        ],
+        "internalType": "struct LibElement.Operation[]",
+        "name": "",
+        "type": "tuple[]"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "pManager",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "partManager",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "impl",
+        "type": "address"
+      }
+    ],
+    "name": "initialize",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  }
+]

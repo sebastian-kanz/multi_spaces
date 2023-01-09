@@ -1,0 +1,15 @@
+[
+  {
+    "inputs": [],
+    "name": "participantManager",
+    "outputs": [
+      {
+        "internalType": "contract IParticipantManager",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  }
+]

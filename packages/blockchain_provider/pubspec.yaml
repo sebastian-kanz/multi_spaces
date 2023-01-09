@@ -1,0 +1,9 @@
+name: blockchain_provider
+description: Dart package encapsulates the blockchain provider.
+publish_to: none
+
+environment:
+  sdk: ">=2.16.0 <3.0.0"
+
+dependencies:
+  web3dart: ^2.3.3

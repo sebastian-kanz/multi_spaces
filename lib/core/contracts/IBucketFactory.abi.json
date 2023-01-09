@@ -1,0 +1,36 @@
+[
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "pManager",
+        "type": "address"
+      },
+      {
+        "internalType": "string",
+        "name": "name",
+        "type": "string"
+      },
+      {
+        "internalType": "address",
+        "name": "adr",
+        "type": "address"
+      },
+      {
+        "internalType": "bytes",
+        "name": "publicKey",
+        "type": "bytes"
+      }
+    ],
+    "name": "createBucket",
+    "outputs": [
+      {
+        "internalType": "contract IBucket",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  }
+]

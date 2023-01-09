@@ -1,0 +1,116 @@
+[
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "_elem",
+        "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "requestor",
+        "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "time",
+        "type": "uint256"
+      }
+    ],
+    "name": "Request",
+    "type": "event"
+  },
+  {
+    "inputs": [],
+    "name": "announceHolding",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "announceRemoval",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "remove",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "requestData",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "parent",
+        "type": "address"
+      }
+    ],
+    "name": "setParent",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "enum LibElement.RedundancyLevel",
+        "name": "level",
+        "type": "uint8"
+      }
+    ],
+    "name": "setRedundancyLevel",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "components": [
+          {
+            "internalType": "string",
+            "name": "meta",
+            "type": "string"
+          },
+          {
+            "internalType": "string",
+            "name": "data",
+            "type": "string"
+          },
+          {
+            "internalType": "string",
+            "name": "container",
+            "type": "string"
+          }
+        ],
+        "internalType": "struct LibElement.HashBundle",
+        "name": "hashes",
+        "type": "tuple"
+      },
+      {
+        "internalType": "address",
+        "name": "parent",
+        "type": "address"
+      }
+    ],
+    "name": "update",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  }
+]
