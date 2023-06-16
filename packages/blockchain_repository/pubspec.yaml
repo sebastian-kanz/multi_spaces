@@ -1,6 +1,7 @@
 name: blockchain_repository
 description: A new Flutter package project.
 version: 0.0.1
+publish_to: none
 
 environment:
   sdk: '>=2.18.6 <3.0.0'
@@ -13,6 +14,7 @@ dependencies:
   web3dart: ^2.3.3
   blockchain_provider: 
     path: ../blockchain_provider
+  eth_sig_util: ^0.0.9
 
 
 dev_dependencies:

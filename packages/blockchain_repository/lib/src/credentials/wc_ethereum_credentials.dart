@@ -1,7 +1,9 @@
 import 'dart:typed_data';
+import 'package:eth_sig_util/eth_sig_util.dart';
+import 'package:eth_sig_util/util/bytes.dart';
 
 import 'package:walletconnect_dart/walletconnect_dart.dart';
-import 'package:web3dart/src/crypto/secp256k1.dart';
+import 'package:web3dart/crypto.dart';
 import 'package:web3dart/web3dart.dart';
 
 class WcEthereumCredentials extends CustomTransactionSender {
@@ -44,8 +46,12 @@ class WcEthereumCredentials extends CustomTransactionSender {
 
   @override
   Future<MsgSignature> signToSignature(Uint8List payload,
-      {int? chainId, bool isEIP1559 = false}) {
-    // TODO: implement signToSignature
-    throw UnimplementedError();
+      {int? chainId, bool isEIP1559 = false}) async {
+    final sigHex = await provider.sign(
+      message: bufferToHex(payload),
+      address: provider.connector.session.accounts[0],
+    );
+    final sig = SignatureUtil.fromRpcSig(sigHex);
+    return MsgSignature(sig.r, sig.s, sig.v);
   }
 }

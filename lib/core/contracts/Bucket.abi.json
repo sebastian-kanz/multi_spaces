@@ -67,6 +67,19 @@
     "inputs": [
       {
         "indexed": true,
+        "internalType": "uint256",
+        "name": "epoch",
+        "type": "uint256"
+      }
+    ],
+    "name": "KeysAdded",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
         "internalType": "address",
         "name": "_prevElem",
         "type": "address"
@@ -154,13 +167,18 @@
     "inputs": [
       {
         "internalType": "string[]",
-        "name": "newHashes",
+        "name": "keys",
         "type": "string[]"
       },
       {
         "internalType": "address[]",
         "name": "participants",
         "type": "address[]"
+      },
+      {
+        "internalType": "string",
+        "name": "keyCreatorPubKey",
+        "type": "string"
       }
     ],
     "name": "addKeys",
@@ -296,8 +314,13 @@
         "type": "uint256"
       }
     ],
-    "name": "getKey",
+    "name": "getKeyBundle",
     "outputs": [
+      {
+        "internalType": "string",
+        "name": "",
+        "type": "string"
+      },
       {
         "internalType": "string",
         "name": "",
@@ -560,13 +583,18 @@
     "inputs": [
       {
         "internalType": "string",
-        "name": "keyHash",
+        "name": "key",
         "type": "string"
       },
       {
         "internalType": "address",
         "name": "participant",
         "type": "address"
+      },
+      {
+        "internalType": "string",
+        "name": "keyCreatorPubKey",
+        "type": "string"
       },
       {
         "internalType": "uint256",
@@ -588,6 +616,24 @@
       }
     ],
     "name": "setMinElementRedundancy",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "elemAdr",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "parentAdr",
+        "type": "address"
+      }
+    ],
+    "name": "updateParent",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"

@@ -1,6 +1,5 @@
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
+import 'package:web3dart/web3dart.dart';
 
 // Colors
 const Color kBlue = Colors.blue;
@@ -30,3 +29,13 @@ const String kGoogleLogoPath = 'assets/images/google_logo.png';
 const String kTwitterLogoPath = 'assets/images/google_logo.png';
 const String kFacebookLogoPath = 'assets/images/google_logo.png';
 const String kWalletLogoPath = 'assets/images/google_logo.png';
+
+final EthereumAddress zeroAddress =
+    EthereumAddress.fromHex('0x0000000000000000000000000000000000000000');
+
+// Hive
+const int hiveMetaModelTypeId = 1;
+const int hiveElementModelTypeId = 2;
+const int hiveOperationModelTypeId = 3;
+const int hiveContainerModelTypeId = 4;
+const int hiveEthereumAddressTypeId = 5;

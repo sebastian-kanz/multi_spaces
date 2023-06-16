@@ -4,18 +4,12 @@
     "inputs": [
       {
         "indexed": true,
-        "internalType": "string",
-        "name": "_name",
-        "type": "string"
-      },
-      {
-        "indexed": true,
         "internalType": "address",
         "name": "_addr",
         "type": "address"
       },
       {
-        "indexed": true,
+        "indexed": false,
         "internalType": "address",
         "name": "_sender",
         "type": "address"
@@ -42,12 +36,12 @@
     "inputs": [
       {
         "indexed": true,
-        "internalType": "string",
-        "name": "_name",
-        "type": "string"
+        "internalType": "address",
+        "name": "_addr",
+        "type": "address"
       },
       {
-        "indexed": true,
+        "indexed": false,
         "internalType": "address",
         "name": "_sender",
         "type": "address"
@@ -61,18 +55,12 @@
     "inputs": [
       {
         "indexed": true,
-        "internalType": "string",
-        "name": "_name",
-        "type": "string"
+        "internalType": "address",
+        "name": "_addr",
+        "type": "address"
       },
       {
-        "indexed": true,
-        "internalType": "string",
-        "name": "_newName",
-        "type": "string"
-      },
-      {
-        "indexed": true,
+        "indexed": false,
         "internalType": "address",
         "name": "_sender",
         "type": "address"

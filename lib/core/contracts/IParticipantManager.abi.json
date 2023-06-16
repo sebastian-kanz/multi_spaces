@@ -2,6 +2,39 @@
   {
     "inputs": [
       {
+        "internalType": "address",
+        "name": "account",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "sessionAccount",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "validUntilEpoch",
+        "type": "uint256"
+      },
+      {
+        "internalType": "bytes",
+        "name": "uniqueSessionCode",
+        "type": "bytes"
+      },
+      {
+        "internalType": "bytes",
+        "name": "authSig",
+        "type": "bytes"
+      }
+    ],
+    "name": "createSession",
+    "outputs": [],
+    "stateMutability": "payable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
         "internalType": "bytes32",
         "name": "role",
         "type": "bytes32"
@@ -85,6 +118,29 @@
     "name": "removeParticipation",
     "outputs": [],
     "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "account",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "sessionAccount",
+        "type": "address"
+      },
+      {
+        "internalType": "bytes",
+        "name": "authSig",
+        "type": "bytes"
+      }
+    ],
+    "name": "revokeSession",
+    "outputs": [],
+    "stateMutability": "payable",
     "type": "function"
   }
 ]

@@ -9,6 +9,7 @@ import 'package:secure_storage/secure_storage.dart';
 import 'package:web3auth_flutter/enums.dart';
 import 'package:web3auth_flutter/input.dart';
 import 'package:web3auth_flutter/web3auth_flutter.dart';
+import 'package:web3dart/crypto.dart';
 import 'package:web3dart/web3dart.dart';
 import 'package:http/http.dart';
 
@@ -16,8 +17,9 @@ import 'constants.dart';
 
 class EthereumWeb3AuthProvider implements BlockchainProvider {
   final Web3Client _client;
-  Credentials? credentials;
-  final SecureStorage storage;
+  Credentials? _credentials;
+  String? _publicKey;
+  final SecureStorage _storage;
   final logger = getLogger();
 
   static final EthereumWeb3AuthProvider _instance =
@@ -26,7 +28,7 @@ class EthereumWeb3AuthProvider implements BlockchainProvider {
 
   EthereumWeb3AuthProvider._internal()
       : _client = Web3Client(Env.eth_url, Client()),
-        storage = SecureStorage();
+        _storage = SecureStorage();
 
   @override
   Future<void> init() async {
@@ -39,22 +41,28 @@ class EthereumWeb3AuthProvider implements BlockchainProvider {
     } else {
       throw UnKnownException('Unknown platform');
     }
-    await Web3AuthFlutter.init(Web3AuthOptions(
+    await Web3AuthFlutter.init(
+      Web3AuthOptions(
         clientId: Env.client_id,
-        network: Network.mainnet,
+        network: Network.testnet,
         redirectUrl: redirectUrl,
-        whiteLabel: WhiteLabelData(dark: true, name: "MultiSpaces")));
+        whiteLabel: WhiteLabelData(dark: true, name: "MultiSpaces"),
+      ),
+    );
 
-    final privKey = await storage.get(WEB3_AUTH_PRIV_KEY);
+    final privKey = await _storage.get(WEB3_AUTH_PRIV_KEY);
     if (privKey != null) {
-      credentials = EthPrivateKey.fromHex(privKey);
+      _publicKey = bytesToHex(
+        EthPrivateKey.fromHex(privKey).encodedPublicKey,
+      );
+      _credentials = EthPrivateKey.fromHex(privKey);
     }
   }
 
   @override
   Future<void> login(Map<String, dynamic> params) async {
     try {
-      if (credentials == null) {
+      if (_credentials == null) {
         final response = await Web3AuthFlutter.login(LoginParams(
             loginProvider: params['provider'],
             mfaLevel: MFALevel.NONE,
@@ -64,12 +72,15 @@ class EthereumWeb3AuthProvider implements BlockchainProvider {
         if (response.privKey == null) {
           throw Exception('Missing private key');
         }
-        credentials = EthPrivateKey.fromHex(response.privKey!);
-        await storage.store(WEB3_AUTH_PRIV_KEY, response.privKey!);
-        await storage.store(
+        _credentials = EthPrivateKey.fromHex(response.privKey!);
+        _publicKey = bytesToHex(
+          EthPrivateKey.fromHex(response.privKey!).encodedPublicKey,
+        );
+        await _storage.store(WEB3_AUTH_PRIV_KEY, response.privKey!);
+        await _storage.store(
             WEB3_AUTH_EMAIL_KEY, response.userInfo?.email ?? '');
-        await storage.store(WEB3_AUTH_NAME_KEY, response.userInfo?.name ?? '');
-        await storage.store(
+        await _storage.store(WEB3_AUTH_NAME_KEY, response.userInfo?.name ?? '');
+        await _storage.store(
             WEB3_AUTH_PROFILE_KEY, response.userInfo?.profileImage ?? '');
       } else {
         logger.i("Already logged in.");
@@ -86,11 +97,11 @@ class EthereumWeb3AuthProvider implements BlockchainProvider {
     try {
       // This does not work! Leave out for now.
       // await Web3AuthFlutter.logout();
-      credentials = null;
-      await storage.delete(WEB3_AUTH_PRIV_KEY);
-      await storage.delete(WEB3_AUTH_EMAIL_KEY);
-      await storage.delete(WEB3_AUTH_NAME_KEY);
-      await storage.delete(WEB3_AUTH_PROFILE_KEY);
+      _credentials = null;
+      await _storage.delete(WEB3_AUTH_PRIV_KEY);
+      await _storage.delete(WEB3_AUTH_EMAIL_KEY);
+      await _storage.delete(WEB3_AUTH_NAME_KEY);
+      await _storage.delete(WEB3_AUTH_PROFILE_KEY);
     } on UserCancelledException {
       logger.e("User cancelled.");
     } on UnKnownException {
@@ -118,7 +129,7 @@ class EthereumWeb3AuthProvider implements BlockchainProvider {
 
   @override
   Future<String> sendRawTransaction({required Uint8List data}) {
-    if (credentials != null) {
+    if (_credentials != null) {
       return _client.sendRawTransaction(data);
     } else {
       throw Exception("No valid credentials available");
@@ -134,9 +145,9 @@ class EthereumWeb3AuthProvider implements BlockchainProvider {
       BigInt? gasPrice,
       BigInt? value,
       int? nonce}) async {
-    if (credentials != null) {
+    if (_credentials != null) {
       return _client.sendTransaction(
-        credentials!,
+        _credentials!,
         Transaction(
           from: EthereumAddress.fromHex(from),
           to: EthereumAddress.fromHex(to ?? ''),
@@ -160,9 +171,9 @@ class EthereumWeb3AuthProvider implements BlockchainProvider {
       BigInt? gasPrice,
       BigInt? value,
       int? nonce}) async {
-    if (credentials != null) {
+    if (_credentials != null) {
       final result = await _client.signTransaction(
-        credentials!,
+        _credentials!,
         Transaction(
           from: EthereumAddress.fromHex(from),
           to: EthereumAddress.fromHex(to ?? ''),
@@ -191,15 +202,15 @@ class EthereumWeb3AuthProvider implements BlockchainProvider {
       required ContractFunction function,
       required List params,
       required int value}) {
-    if (credentials != null) {
+    if (_credentials != null) {
       final transaction = Transaction.callContract(
         contract: contract,
         function: function,
         parameters: params,
-        from: credentials?.address,
+        from: _credentials?.address,
         value: EtherAmount.fromUnitAndValue(EtherUnit.wei, value),
       );
-      return _client.sendTransaction(credentials!, transaction);
+      return _client.sendTransaction(_credentials!, transaction);
     } else {
       throw Exception("No valid credentials available");
     }
@@ -207,23 +218,58 @@ class EthereumWeb3AuthProvider implements BlockchainProvider {
 
   @override
   bool isAuthenticated() {
-    return credentials != null;
+    return _credentials != null;
   }
 
   @override
-  EthereumAddress? getAccount() {
-    return credentials?.address;
+  EthereumAddress getAccount() {
+    if (_credentials != null) {
+      return _credentials!.address;
+    }
+    throw Exception("No valid credentials available");
   }
 
   @override
   Future<Map<String, String?>> getUserInfo() async {
-    final email = await storage.get(WEB3_AUTH_EMAIL_KEY);
-    final name = await storage.get(WEB3_AUTH_NAME_KEY);
-    final profileImage = await storage.get(WEB3_AUTH_PROFILE_KEY);
+    final email = await _storage.get(WEB3_AUTH_EMAIL_KEY);
+    final name = await _storage.get(WEB3_AUTH_NAME_KEY);
+    final profileImage = await _storage.get(WEB3_AUTH_PROFILE_KEY);
     return {
       'email': email,
       'name': name,
       'profileImage': profileImage,
     };
+  }
+
+  @override
+  Credentials getCredentails() {
+    if (_credentials != null) {
+      return _credentials!;
+    }
+    throw Exception("No valid credentials available");
+  }
+
+  @override
+  Uint8List getPublicKey() {
+    if (_publicKey != null) {
+      return hexToBytes(_publicKey ?? "0x00");
+    }
+    // else if(_credentials != null) {
+    //   _publicKey = _credentials.
+    // }
+    throw Exception("No valid public key available");
+  }
+
+  @override
+  String getPublicKeyHex() {
+    if (_publicKey != null) {
+      return _publicKey!;
+    }
+    throw Exception("No valid public key available");
+  }
+
+  @override
+  Future<T> callContract2<T>({required Fct fct}) {
+    return fct<T>(getCredentails());
   }
 }

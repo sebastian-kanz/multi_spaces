@@ -1,6 +1,7 @@
 name: web3storage_ipfs_api
 description: A new Flutter package project.
 version: 0.0.1
+publish_to: none
 
 environment:
   sdk: '>=2.18.6 <3.0.0'

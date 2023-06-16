@@ -10,6 +10,11 @@
         "internalType": "address",
         "name": "element",
         "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "partManagerFactory",
+        "type": "address"
       }
     ],
     "stateMutability": "nonpayable",
@@ -123,6 +128,19 @@
       }
     ],
     "name": "setElementImplementation",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "impl",
+        "type": "address"
+      }
+    ],
+    "name": "setParticipantManagerFactory",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"

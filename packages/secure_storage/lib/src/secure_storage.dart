@@ -18,6 +18,10 @@ class SecureStorage {
     return _storage.read(key: key);
   }
 
+  Future<bool> exists(String key) async {
+    return _storage.containsKey(key: key);
+  }
+
   Future<void> delete(String key) async {
     await _storage.delete(key: key);
   }

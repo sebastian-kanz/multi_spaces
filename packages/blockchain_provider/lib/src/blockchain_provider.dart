@@ -2,13 +2,18 @@ import 'dart:typed_data';
 
 import 'package:web3dart/web3dart.dart';
 
+typedef Fct = Future<T> Function<T>(Credentials creds);
+
 abstract class BlockchainProvider {
-  EthereumAddress? getAccount();
+  EthereumAddress getAccount();
   Future<Map<String, String?>> getUserInfo();
   Future<void> login(Map<String, dynamic> params);
   Future<void> logout();
   bool isAuthenticated();
   Future<void> init();
+  Credentials getCredentails();
+  String getPublicKeyHex();
+  Uint8List getPublicKey();
 
   /// Signs method calculates an Ethereum specific signature.
   /// [address] - 20B address
@@ -95,4 +100,8 @@ abstract class BlockchainProvider {
       required ContractFunction function,
       required List<dynamic> params,
       required int value});
+
+  Future<T> callContract2<T>({
+    required Fct fct,
+  });
 }

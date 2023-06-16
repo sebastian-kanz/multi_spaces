@@ -205,7 +205,7 @@ class _OnboardingState extends State<Onboarding> with TickerProviderStateMixin {
     await _rippleAnimationController.forward();
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (_) => LoginPage(screenHeight: widget.screenHeight),
+        builder: (_) => LoginPageView(screenHeight: widget.screenHeight),
       ),
     );
   }

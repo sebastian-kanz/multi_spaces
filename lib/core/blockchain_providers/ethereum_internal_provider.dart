@@ -2,13 +2,15 @@ import 'dart:typed_data';
 import 'package:blockchain_provider/blockchain_provider.dart';
 import 'package:http/http.dart';
 import 'package:multi_spaces/core/env/Env.dart';
+import 'package:web3dart/crypto.dart';
 
 import 'package:web3dart/web3dart.dart';
 // import 'dart:math';
 
 class EthereumInternalProvider implements BlockchainProvider {
   final Web3Client _client;
-  Credentials? credentials;
+  Credentials? _credentials;
+  String? _publicKey;
 
   static final EthereumInternalProvider _instance =
       EthereumInternalProvider._internal();
@@ -101,16 +103,48 @@ class EthereumInternalProvider implements BlockchainProvider {
 
   @override
   bool isAuthenticated() {
-    return credentials != null;
+    return _credentials != null;
   }
 
   @override
-  EthereumAddress? getAccount() {
-    return credentials?.address;
+  EthereumAddress getAccount() {
+    if (_credentials != null) {
+      return _credentials!.address;
+    }
+    throw Exception("No valid credentials available");
   }
 
   @override
   Future<Map<String, String?>> getUserInfo() async {
     return {};
+  }
+
+  @override
+  Credentials getCredentails() {
+    if (_credentials != null) {
+      return _credentials!;
+    }
+    throw Exception("No valid credentials available");
+  }
+
+  @override
+  Uint8List getPublicKey() {
+    if (_publicKey != null) {
+      return hexToBytes(_publicKey ?? "0x00");
+    }
+    throw Exception("No valid public key available");
+  }
+
+  @override
+  String getPublicKeyHex() {
+    if (_publicKey != null) {
+      return _publicKey!;
+    }
+    throw Exception("No valid public key available");
+  }
+
+  @override
+  Future<T> callContract2<T>({required Fct fct}) {
+    return fct<T>(getCredentails());
   }
 }

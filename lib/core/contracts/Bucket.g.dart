@@ -5,7 +5,7 @@ import 'package:web3dart/web3dart.dart' as _i1;
 import 'dart:typed_data' as _i2;
 
 final _contractAbi = _i1.ContractAbi.fromJson(
-  '[{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"_elem","type":"address"},{"indexed":true,"internalType":"uint256","name":"_blockNumber","type":"uint256"},{"indexed":true,"internalType":"address","name":"_sender","type":"address"}],"name":"Create","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"_elem","type":"address"},{"indexed":false,"internalType":"uint256","name":"_blockNumber","type":"uint256"},{"indexed":true,"internalType":"address","name":"_sender","type":"address"}],"name":"Delete","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"internalType":"uint8","name":"version","type":"uint8"}],"name":"Initialized","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"_prevElem","type":"address"},{"indexed":true,"internalType":"address","name":"_newElemt","type":"address"},{"indexed":false,"internalType":"uint256","name":"_blockNumber","type":"uint256"},{"indexed":true,"internalType":"address","name":"_sender","type":"address"}],"name":"Update","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"_elem","type":"address"},{"indexed":true,"internalType":"address","name":"_parent","type":"address"},{"indexed":false,"internalType":"uint256","name":"_blockNumber","type":"uint256"},{"indexed":true,"internalType":"address","name":"_sender","type":"address"}],"name":"UpdateParent","type":"event"},{"inputs":[],"name":"EPOCH","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"GENESIS","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"string[]","name":"newHashes","type":"string[]"},{"internalType":"address[]","name":"participants","type":"address[]"}],"name":"addKeys","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"","type":"uint256"}],"name":"allElements","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"closeBucket","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"string[]","name":"newMetaHashes","type":"string[]"},{"internalType":"string[]","name":"newDataHashes","type":"string[]"},{"internalType":"string[]","name":"newContainerHashes","type":"string[]"},{"internalType":"address[]","name":"parents","type":"address[]"},{"internalType":"uint256","name":"contentType","type":"uint256"}],"name":"createElements","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"elementImpl","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"getAll","outputs":[{"internalType":"address[]","name":"","type":"address[]"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"getHistory","outputs":[{"components":[{"internalType":"address","name":"elem","type":"address"},{"internalType":"enum LibElement.OperationType","name":"operationType","type":"uint8"},{"internalType":"uint256","name":"blockNumber","type":"uint256"}],"internalType":"struct LibElement.Operation[]","name":"","type":"tuple[]"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"participant","type":"address"},{"internalType":"uint256","name":"blockNumber","type":"uint256"}],"name":"getKey","outputs":[{"internalType":"string","name":"","type":"string"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"string","name":"","type":"string"}],"name":"hashExists","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"","type":"uint256"}],"name":"history","outputs":[{"internalType":"address","name":"elem","type":"address"},{"internalType":"enum LibElement.OperationType","name":"operationType","type":"uint8"},{"internalType":"uint256","name":"blockNumber","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"pManager","type":"address"},{"internalType":"address","name":"partManager","type":"address"},{"internalType":"address","name":"impl","type":"address"}],"name":"initialize","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"minElementRedundancy","outputs":[{"internalType":"enum LibElement.RedundancyLevel","name":"","type":"uint8"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"sender","type":"address"}],"name":"notifyCreation","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"contract Element","name":"elem","type":"address"},{"internalType":"address","name":"sender","type":"address"}],"name":"notifyDelete","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"contract Element","name":"elem","type":"address"},{"internalType":"address","name":"sender","type":"address"}],"name":"notifyUpdate","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"contract Element","name":"elem","type":"address"},{"internalType":"address","name":"sender","type":"address"}],"name":"notifyUpdateParent","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"participantManager","outputs":[{"internalType":"contract IParticipantManager","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"contract Element","name":"elem","type":"address"}],"name":"preRegisterElement","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"string","name":"name","type":"string"},{"internalType":"address","name":"inviter","type":"address"},{"internalType":"bytes","name":"signature","type":"bytes"},{"internalType":"string","name":"randomCode","type":"string"},{"internalType":"bytes","name":"pubKey","type":"bytes"}],"name":"redeemParticipationCode","outputs":[],"stateMutability":"payable","type":"function"},{"inputs":[{"internalType":"address","name":"","type":"address"}],"name":"registeredElements","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"removeParticipation","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"impl","type":"address"}],"name":"setElementImplementation","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"string","name":"keyHash","type":"string"},{"internalType":"address","name":"participant","type":"address"},{"internalType":"uint256","name":"blockNumber","type":"uint256"}],"name":"setKeyForParticipant","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"enum LibElement.RedundancyLevel","name":"level","type":"uint8"}],"name":"setMinElementRedundancy","outputs":[],"stateMutability":"nonpayable","type":"function"}]',
+  '[{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"_elem","type":"address"},{"indexed":true,"internalType":"uint256","name":"_blockNumber","type":"uint256"},{"indexed":true,"internalType":"address","name":"_sender","type":"address"}],"name":"Create","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"_elem","type":"address"},{"indexed":false,"internalType":"uint256","name":"_blockNumber","type":"uint256"},{"indexed":true,"internalType":"address","name":"_sender","type":"address"}],"name":"Delete","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"internalType":"uint8","name":"version","type":"uint8"}],"name":"Initialized","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"uint256","name":"epoch","type":"uint256"}],"name":"KeysAdded","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"_prevElem","type":"address"},{"indexed":true,"internalType":"address","name":"_newElemt","type":"address"},{"indexed":false,"internalType":"uint256","name":"_blockNumber","type":"uint256"},{"indexed":true,"internalType":"address","name":"_sender","type":"address"}],"name":"Update","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"_elem","type":"address"},{"indexed":true,"internalType":"address","name":"_parent","type":"address"},{"indexed":false,"internalType":"uint256","name":"_blockNumber","type":"uint256"},{"indexed":true,"internalType":"address","name":"_sender","type":"address"}],"name":"UpdateParent","type":"event"},{"inputs":[],"name":"EPOCH","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"GENESIS","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"string[]","name":"keys","type":"string[]"},{"internalType":"address[]","name":"participants","type":"address[]"},{"internalType":"string","name":"keyCreatorPubKey","type":"string"}],"name":"addKeys","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"","type":"uint256"}],"name":"allElements","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"closeBucket","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"string[]","name":"newMetaHashes","type":"string[]"},{"internalType":"string[]","name":"newDataHashes","type":"string[]"},{"internalType":"string[]","name":"newContainerHashes","type":"string[]"},{"internalType":"address[]","name":"parents","type":"address[]"},{"internalType":"uint256","name":"contentType","type":"uint256"}],"name":"createElements","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"elementImpl","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"getAll","outputs":[{"internalType":"address[]","name":"","type":"address[]"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"getHistory","outputs":[{"components":[{"internalType":"address","name":"elem","type":"address"},{"internalType":"enum LibElement.OperationType","name":"operationType","type":"uint8"},{"internalType":"uint256","name":"blockNumber","type":"uint256"}],"internalType":"struct LibElement.Operation[]","name":"","type":"tuple[]"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"participant","type":"address"},{"internalType":"uint256","name":"blockNumber","type":"uint256"}],"name":"getKeyBundle","outputs":[{"internalType":"string","name":"","type":"string"},{"internalType":"string","name":"","type":"string"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"string","name":"","type":"string"}],"name":"hashExists","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"","type":"uint256"}],"name":"history","outputs":[{"internalType":"address","name":"elem","type":"address"},{"internalType":"enum LibElement.OperationType","name":"operationType","type":"uint8"},{"internalType":"uint256","name":"blockNumber","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"pManager","type":"address"},{"internalType":"address","name":"partManager","type":"address"},{"internalType":"address","name":"impl","type":"address"}],"name":"initialize","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"minElementRedundancy","outputs":[{"internalType":"enum LibElement.RedundancyLevel","name":"","type":"uint8"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"sender","type":"address"}],"name":"notifyCreation","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"contract Element","name":"elem","type":"address"},{"internalType":"address","name":"sender","type":"address"}],"name":"notifyDelete","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"contract Element","name":"elem","type":"address"},{"internalType":"address","name":"sender","type":"address"}],"name":"notifyUpdate","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"contract Element","name":"elem","type":"address"},{"internalType":"address","name":"sender","type":"address"}],"name":"notifyUpdateParent","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"participantManager","outputs":[{"internalType":"contract IParticipantManager","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"contract Element","name":"elem","type":"address"}],"name":"preRegisterElement","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"string","name":"name","type":"string"},{"internalType":"address","name":"inviter","type":"address"},{"internalType":"bytes","name":"signature","type":"bytes"},{"internalType":"string","name":"randomCode","type":"string"},{"internalType":"bytes","name":"pubKey","type":"bytes"}],"name":"redeemParticipationCode","outputs":[],"stateMutability":"payable","type":"function"},{"inputs":[{"internalType":"address","name":"","type":"address"}],"name":"registeredElements","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"removeParticipation","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"impl","type":"address"}],"name":"setElementImplementation","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"string","name":"key","type":"string"},{"internalType":"address","name":"participant","type":"address"},{"internalType":"string","name":"keyCreatorPubKey","type":"string"},{"internalType":"uint256","name":"blockNumber","type":"uint256"}],"name":"setKeyForParticipant","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"enum LibElement.RedundancyLevel","name":"level","type":"uint8"}],"name":"setMinElementRedundancy","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"elemAdr","type":"address"},{"internalType":"address","name":"parentAdr","type":"address"}],"name":"updateParent","outputs":[],"stateMutability":"nonpayable","type":"function"}]',
   'Bucket',
 );
 
@@ -57,16 +57,18 @@ class Bucket extends _i1.GeneratedContract {
   /// like the gas price, nonce and max gas. The `data` and `to` fields will be
   /// set by the contract.
   Future<String> addKeys(
-    List<String> newHashes,
-    List<_i1.EthereumAddress> participants, {
+    List<String> keys,
+    List<_i1.EthereumAddress> participants,
+    String keyCreatorPubKey, {
     required _i1.Credentials credentials,
     _i1.Transaction? transaction,
   }) async {
     final function = self.abi.functions[2];
-    assert(checkSignature(function, '7f19f9e3'));
+    assert(checkSignature(function, '0bb5c9f5'));
     final params = [
-      newHashes,
+      keys,
       participants,
+      keyCreatorPubKey,
     ];
     return write(
       credentials,
@@ -80,12 +82,12 @@ class Bucket extends _i1.GeneratedContract {
   /// set, the function will be evaluated in the specified block. By default, the
   /// latest on-chain block will be used.
   Future<_i1.EthereumAddress> allElements(
-    BigInt $param2, {
+    BigInt $param3, {
     _i1.BlockNum? atBlock,
   }) async {
     final function = self.abi.functions[3];
     assert(checkSignature(function, '5598e24f'));
-    final params = [$param2];
+    final params = [$param3];
     final response = await read(
       function,
       params,
@@ -189,13 +191,13 @@ class Bucket extends _i1.GeneratedContract {
   /// The optional [atBlock] parameter can be used to view historical data. When
   /// set, the function will be evaluated in the specified block. By default, the
   /// latest on-chain block will be used.
-  Future<String> getKey(
+  Future<GetKeyBundle> getKeyBundle(
     _i1.EthereumAddress participant,
     BigInt blockNumber, {
     _i1.BlockNum? atBlock,
   }) async {
     final function = self.abi.functions[9];
-    assert(checkSignature(function, 'a369f72e'));
+    assert(checkSignature(function, 'e4601393'));
     final params = [
       participant,
       blockNumber,
@@ -205,19 +207,19 @@ class Bucket extends _i1.GeneratedContract {
       params,
       atBlock,
     );
-    return (response[0] as String);
+    return GetKeyBundle(response);
   }
 
   /// The optional [atBlock] parameter can be used to view historical data. When
   /// set, the function will be evaluated in the specified block. By default, the
   /// latest on-chain block will be used.
   Future<bool> hashExists(
-    String $param10, {
+    String $param11, {
     _i1.BlockNum? atBlock,
   }) async {
     final function = self.abi.functions[10];
     assert(checkSignature(function, '9871e510'));
-    final params = [$param10];
+    final params = [$param11];
     final response = await read(
       function,
       params,
@@ -230,12 +232,12 @@ class Bucket extends _i1.GeneratedContract {
   /// set, the function will be evaluated in the specified block. By default, the
   /// latest on-chain block will be used.
   Future<History> history(
-    BigInt $param11, {
+    BigInt $param12, {
     _i1.BlockNum? atBlock,
   }) async {
     final function = self.abi.functions[11];
     assert(checkSignature(function, 'a7a38f0b'));
-    final params = [$param11];
+    final params = [$param12];
     final response = await read(
       function,
       params,
@@ -440,12 +442,12 @@ class Bucket extends _i1.GeneratedContract {
   /// set, the function will be evaluated in the specified block. By default, the
   /// latest on-chain block will be used.
   Future<bool> registeredElements(
-    _i1.EthereumAddress $param28, {
+    _i1.EthereumAddress $param29, {
     _i1.BlockNum? atBlock,
   }) async {
     final function = self.abi.functions[21];
     assert(checkSignature(function, 'c26d8e10'));
-    final params = [$param28];
+    final params = [$param29];
     final response = await read(
       function,
       params,
@@ -495,17 +497,19 @@ class Bucket extends _i1.GeneratedContract {
   /// like the gas price, nonce and max gas. The `data` and `to` fields will be
   /// set by the contract.
   Future<String> setKeyForParticipant(
-    String keyHash,
+    String key,
     _i1.EthereumAddress participant,
+    String keyCreatorPubKey,
     BigInt blockNumber, {
     required _i1.Credentials credentials,
     _i1.Transaction? transaction,
   }) async {
     final function = self.abi.functions[24];
-    assert(checkSignature(function, '3f9c9d1b'));
+    assert(checkSignature(function, '49b22aa0'));
     final params = [
-      keyHash,
+      key,
       participant,
+      keyCreatorPubKey,
       blockNumber,
     ];
     return write(
@@ -527,6 +531,29 @@ class Bucket extends _i1.GeneratedContract {
     final function = self.abi.functions[25];
     assert(checkSignature(function, '87fb41cf'));
     final params = [level];
+    return write(
+      credentials,
+      transaction,
+      function,
+      params,
+    );
+  }
+
+  /// The optional [transaction] parameter can be used to override parameters
+  /// like the gas price, nonce and max gas. The `data` and `to` fields will be
+  /// set by the contract.
+  Future<String> updateParent(
+    _i1.EthereumAddress elemAdr,
+    _i1.EthereumAddress parentAdr, {
+    required _i1.Credentials credentials,
+    _i1.Transaction? transaction,
+  }) async {
+    final function = self.abi.functions[26];
+    assert(checkSignature(function, '6bc94414'));
+    final params = [
+      elemAdr,
+      parentAdr,
+    ];
     return write(
       credentials,
       transaction,
@@ -598,6 +625,27 @@ class Bucket extends _i1.GeneratedContract {
     });
   }
 
+  /// Returns a live stream of all KeysAdded events emitted by this contract.
+  Stream<KeysAdded> keysAddedEvents({
+    _i1.BlockNum? fromBlock,
+    _i1.BlockNum? toBlock,
+  }) {
+    final event = self.event('KeysAdded');
+    final filter = _i1.FilterOptions.events(
+      contract: self,
+      event: event,
+      fromBlock: fromBlock,
+      toBlock: toBlock,
+    );
+    return client.events(filter).map((_i1.FilterEvent result) {
+      final decoded = event.decodeResults(
+        result.topics!,
+        result.data!,
+      );
+      return KeysAdded(decoded);
+    });
+  }
+
   /// Returns a live stream of all Update events emitted by this contract.
   Stream<Update> updateEvents({
     _i1.BlockNum? fromBlock,
@@ -639,6 +687,16 @@ class Bucket extends _i1.GeneratedContract {
       return UpdateParent(decoded);
     });
   }
+}
+
+class GetKeyBundle {
+  GetKeyBundle(List<dynamic> response)
+      : var1 = (response[0] as String),
+        var2 = (response[1] as String);
+
+  final String var1;
+
+  final String var2;
 }
 
 class History {
@@ -684,6 +742,12 @@ class Initialized {
   Initialized(List<dynamic> response) : version = (response[0] as BigInt);
 
   final BigInt version;
+}
+
+class KeysAdded {
+  KeysAdded(List<dynamic> response) : epoch = (response[0] as BigInt);
+
+  final BigInt epoch;
 }
 
 class Update {

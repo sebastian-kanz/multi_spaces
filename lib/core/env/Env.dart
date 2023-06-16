@@ -8,19 +8,10 @@ part 'Env.g.dart';
       defaultValue: 'dev',
     )}")
 abstract class Env {
-  /// Holds the API_KEY.
-  static const api_key = _Env.api_key;
-
-  /// Holds the SITE_KEY.
-  static const site_key = _Env.site_key;
-
-  /// Holds the CLIENT_SECRET.
-  static const client_secret = _Env.client_secret;
-
-  /// Holds the CLIENT_ID.
   static const client_id = _Env.client_id;
 
   static const eth_url = _Env.eth_url;
+  static const int chain_id = _Env.chain_id;
 
   static const walletconnect_bridge = _Env.walletconnect_bridge;
 
@@ -31,4 +22,19 @@ abstract class Env {
   static const walletconnect_url = _Env.walletconnect_url;
 
   static const walletconnect_icon = _Env.walletconnect_icon;
+
+  static const multi_spaces_contract_address =
+      _Env.multi_spaces_contract_address;
+
+  static const infura_project_id = _Env.infura_project_id;
+
+  static const infura_api_key = _Env.infura_api_key;
+
+  static const pinata_jwt = _Env.pinata_jwt;
+
+  static const pinata_api_key = _Env.pinata_api_key;
+
+  static const pinata_api_secret = _Env.pinata_api_secret;
+
+  static const web_storage_jwt = _Env.web_storage_jwt;
 }

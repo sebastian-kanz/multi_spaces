@@ -23,7 +23,8 @@ class InfuraIpfsApi extends IpfsApi {
   Future<IpfsObject> get(String hash) async {
     try {
       final response = await _client.post(
-        Uri.parse('https://ipfs.infura.io:5001/api/v0/get?arg=$hash'),
+        Uri.parse(
+            'https://multi-spaces.infura-ipfs.io:5001/api/v0/get?arg=$hash'),
         headers: <String, String>{
           'Authorization':
               'Basic ${base64Encode(utf8.encode('$_projectId:$_projectSecret'))}',
@@ -39,8 +40,8 @@ class InfuraIpfsApi extends IpfsApi {
   @override
   Future<String> add(Uint8List data) async {
     try {
-      final request = http.MultipartRequest(
-          'POST', Uri.parse('https://ipfs.infura.io:5001/api/v0/add'));
+      final request = http.MultipartRequest('POST',
+          Uri.parse('https://multi-spaces.infura-ipfs.io:5001/api/v0/add'));
       request.headers['Authorization'] =
           'Basic ${base64Encode(utf8.encode('$_projectId:$_projectSecret'))}';
       request.files
@@ -60,7 +61,8 @@ class InfuraIpfsApi extends IpfsApi {
   Future<void> remove(String hash) async {
     try {
       await _client.post(
-        Uri.parse('https://ipfs.infura.io:5001/api/v0/pin/rm?arg=$hash'),
+        Uri.parse(
+            'https://multi-spaces.infura-ipfs.io:5001/api/v0/pin/rm?arg=$hash'),
         headers: <String, String>{
           'Authorization':
               'Basic ${base64Encode(utf8.encode('$_projectId:$_projectSecret'))}',

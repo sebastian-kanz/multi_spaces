@@ -1,6 +1,7 @@
 name: ipfs_repository
 description: A new Flutter package project.
 version: 0.0.1
+publish_to: none
 
 environment:
   sdk: '>=2.18.6 <3.0.0'
@@ -13,6 +14,8 @@ dependencies:
   ipfs_api:
     path: ../ipfs_api
   logger: ^1.1.0
+  cid:
+    path: ../cid
 
 dev_dependencies:
   flutter_test:

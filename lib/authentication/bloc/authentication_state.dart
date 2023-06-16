@@ -17,24 +17,4 @@ class AuthenticationState extends Equatable {
 
   @override
   List<Object> get props => [status, user];
-
-  // Map<String, dynamic> toJson() {
-  //   return {'status': status, 'user': user.toJson()};
-  // }
-
-  // AuthenticationState? fromJson(Map<String, dynamic> json) {
-  //   final status = json['status'];
-  //   switch (status) {
-  //     case AuthenticationStatus.unknown:
-  //       return const AuthenticationState.unknown();
-  //     case AuthenticationStatus.initialized:
-  //       return const AuthenticationState.unknown();
-  //     case AuthenticationStatus.authenticated:
-  //       return AuthenticationState.authenticated(
-  //           User(json['user']['id'] ?? ''));
-  //     case AuthenticationStatus.unauthenticated:
-  //       return const AuthenticationState.unauthenticated();
-  //   }
-  //   return null;
-  // }
 }

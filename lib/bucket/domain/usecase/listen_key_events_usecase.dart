@@ -1,0 +1,22 @@
+import 'dart:async';
+import '../../../core/usecases/usecase.dart';
+import '../repository/bucket_repository.dart';
+import 'package:async/async.dart' show StreamGroup;
+
+class ListenKeyEventsUseCase implements StreamUseCase<int, void> {
+  final BucketRepository repository;
+
+  ListenKeyEventsUseCase(this.repository);
+
+  @override
+  Future<Stream<int>> call([void params]) async {
+    try {
+      return StreamGroup.merge([
+        repository.listenKey,
+      ]);
+    } catch (e) {
+      print(e);
+      rethrow;
+    }
+  }
+}
