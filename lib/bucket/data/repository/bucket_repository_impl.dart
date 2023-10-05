@@ -1,3 +1,6 @@
+import 'dart:math';
+import 'dart:typed_data';
+
 import 'package:blockchain_provider/blockchain_provider.dart';
 import 'package:multi_spaces/bucket/data/mapper/element_event_mapper.dart';
 import 'package:multi_spaces/bucket/data/mapper/element_mapper.dart';
@@ -8,68 +11,88 @@ import 'package:multi_spaces/bucket/domain/repository/bucket_repository.dart';
 import 'package:multi_spaces/core/contracts/Bucket.g.dart';
 import 'package:multi_spaces/core/contracts/Element.g.dart';
 import 'package:multi_spaces/core/env/Env.dart';
+import 'package:multi_spaces/core/networking/MultiSpaceClient.dart';
+import 'package:retry/retry.dart';
+import 'package:web3dart/json_rpc.dart';
 import 'package:web3dart/web3dart.dart';
-import 'package:http/http.dart';
 
 class BucketRepositoryImpl implements BucketRepository {
-  BucketRepositoryImpl(
-      List<BlockchainProvider> providers, String bucketContractAddress)
+  BucketRepositoryImpl(String bucketContractAddress)
       : _bucket = Bucket(
           address: EthereumAddress.fromHex(bucketContractAddress),
-          client: Web3Client(Env.eth_url, Client()),
+          client: MultiSpaceClient().client,
           chainId: Env.chain_id,
-        ) {
-    for (var provider in providers) {
-      if (provider.isAuthenticated()) {
-        _provider = provider;
-      }
-    }
-  }
+        );
 
   final Bucket _bucket;
-  late BlockchainProvider _provider;
 
   @override
-  Stream<ElementEventEntity> get listenCreate async* {
-    yield* _bucket
+  Stream<ElementEventEntity> get listenCreate {
+    // yield* _bucket
+    //     .createEvents()
+    //     .asyncMap((event) => ElementEventMapper.fromModel(event));
+    return _bucket
         .createEvents()
         .asyncMap((event) => ElementEventMapper.fromModel(event));
   }
 
   @override
-  Stream<ElementEventEntity> get listenDelete async* {
-    yield* _bucket
+  Stream<ElementEventEntity> get listenDelete {
+    // yield* _bucket
+    //     .deleteEvents()
+    //     .asyncMap((event) => ElementEventMapper.fromModel(event));
+    return _bucket
         .deleteEvents()
         .asyncMap((event) => ElementEventMapper.fromModel(event));
   }
 
   @override
-  Stream<ElementEventEntity> get listenUpdate async* {
-    yield* _bucket
+  Stream<ElementEventEntity> get listenUpdate {
+    // yield* _bucket
+    //     .updateEvents()
+    //     .asyncMap((event) => ElementEventMapper.fromModel(event));
+    return _bucket
         .updateEvents()
         .asyncMap((event) => ElementEventMapper.fromModel(event));
   }
 
   @override
-  Stream<ElementEventEntity> get listenUpdateParent async* {
-    yield* _bucket
+  Stream<ElementEventEntity> get listenUpdateParent {
+    // yield* _bucket
+    //     .updateParentEvents()
+    //     .asyncMap((event) => ElementEventMapper.fromModel(event));
+    return _bucket
         .updateParentEvents()
         .asyncMap((event) => ElementEventMapper.fromModel(event));
   }
 
   @override
-  Stream<int> get listenKey async* {
-    yield* _bucket.keysAddedEvents().asyncMap((event) => event.epoch.toInt());
+  Stream<int> get listenKey {
+    // yield* _bucket.keysAddedEvents().asyncMap((event) => event.epoch.toInt());
+    return _bucket.keysAddedEvents().asyncMap((event) => event.epoch.toInt());
+  }
+
+  @override
+  Stream<int> get listenAllKeys async* {
+    final genesis = await _getGenesis();
+    yield* _bucket
+        .keysAddedEvents(
+            fromBlock: BlockNum.exact(genesis),
+            toBlock: const BlockNum.current())
+        .asyncMap((event) => event.epoch.toInt());
   }
 
   @override
   Future<List<ElementEntity>> getAllElements() async {
-    final result = await _bucket.getAll();
+    final result = await retry(
+      () => _bucket.getAll(),
+      retryIf: (e) => e is RPCError,
+    );
     final allElements = result
         .map(
           (e) => Element(
             address: e,
-            client: Web3Client(Env.eth_url, Client()),
+            client: MultiSpaceClient().client,
             chainId: Env.chain_id,
           ),
         )
@@ -86,7 +109,7 @@ class BucketRepositoryImpl implements BucketRepository {
   Future<ElementEntity> getElement(EthereumAddress address) async {
     final result = Element(
       address: address,
-      client: Web3Client(Env.eth_url, Client()),
+      client: MultiSpaceClient().client,
       chainId: Env.chain_id,
     );
     return ElementMapper.fromModel(
@@ -103,17 +126,21 @@ class BucketRepositoryImpl implements BucketRepository {
     BigInt contentType, {
     Transaction? transaction,
   }) async {
-    return _bucket.createElements(
-      newMetaHashes,
-      newDataHashes,
-      newContainerHashes,
-      parents,
-      contentType,
-      credentials: _provider.getCredentails(),
-      transaction: Transaction(
-        from: _provider.getAccount(),
-        maxGas: 3000000,
+    return retry(
+      () => _bucket.createElements(
+        newMetaHashes,
+        newDataHashes,
+        newContainerHashes,
+        parents,
+        contentType,
+        credentials:
+            BlockchainProviderManager().authenticatedProvider!.getCredentails(),
+        transaction: Transaction(
+          from: BlockchainProviderManager().authenticatedProvider!.getAccount(),
+          maxGas: 3000000,
+        ),
       ),
+      retryIf: (e) => e is RPCError,
     );
   }
 
@@ -121,18 +148,31 @@ class BucketRepositoryImpl implements BucketRepository {
   Future<KeyBundleEntity> getCurrentKeyForParticipant(
     EthereumAddress participant,
   ) async {
-    final blockNumber = await _bucket.client.getBlockNumber();
-    final result = await _bucket.getKeyBundle(
-      participant,
-      BigInt.from(blockNumber),
+    final blockNumber = await _getCurrentBlock();
+    final result = await retry(
+      () => _bucket.getKeyBundle(
+        participant,
+        BigInt.from(blockNumber),
+      ),
+      retryIf: (e) => e is RPCError,
     );
+
     return KeyBundleEntity(result.var1, result.var2);
   }
 
+  @override
   Future<int> blockToEpoch(int creationBlockNumber) async {
-    final genesis = (await _bucket.GENESIS()).toInt();
-    final blocksPerEpoch = (await _bucket.EPOCH()).toInt();
+    final genesis = await _getGenesis();
+    final blocksPerEpoch = await _getBlocksPerEpoch();
     return ((creationBlockNumber - genesis) / blocksPerEpoch).floor();
+  }
+
+  @override
+  Future<int> epochToBlock(int epoch) async {
+    final genesis = await _getGenesis();
+    final blocksPerEpoch = await _getBlocksPerEpoch();
+    final block = genesis + epoch * blocksPerEpoch;
+    return block;
   }
 
   @override
@@ -141,18 +181,175 @@ class BucketRepositoryImpl implements BucketRepository {
     List<String> keys,
     String keyCreatorPubKey,
   ) async {
-    final result = await _bucket.addKeys(
-      keys,
-      participants,
-      keyCreatorPubKey,
-      credentials: _provider.getCredentails(),
-      transaction: Transaction(
-        from: _provider.getAccount(),
-        maxGas: 3000000,
+    final result = await retry(
+      () => _bucket.addKeys(
+        keys,
+        participants,
+        keyCreatorPubKey,
+        credentials:
+            BlockchainProviderManager().internalProvider.getCredentails(),
+        transaction: Transaction(
+          from: BlockchainProviderManager().internalProvider.getAccount(),
+          maxGas: 3000000,
+        ),
       ),
+      retryIf: (e) => e is RPCError,
     );
-    final block = await _bucket.client.getBlockNumber();
-    final epoch = await blockToEpoch(block);
+    final blockNumber = await _getCurrentBlock();
+    final epoch = await blockToEpoch(blockNumber);
     return KeyCreation(result, epoch);
+  }
+
+  @override
+  Future<KeyCreation> setKeyForParticipant(
+    EthereumAddress participant,
+    String key,
+    int epoch,
+  ) async {
+    final block = await epochToBlock(epoch);
+    final result = await retry(
+      () async => _bucket.setKeyForParticipant(
+        key,
+        participant,
+        BlockchainProviderManager().internalProvider.getPublicKeyHex(),
+        BigInt.from(block),
+        credentials:
+            BlockchainProviderManager().internalProvider.getCredentails(),
+        transaction: Transaction(
+          from: BlockchainProviderManager().internalProvider.getAccount(),
+          maxGas: 3000000,
+        ),
+      ),
+      retryIf: (e) => e is RPCError,
+    );
+    return KeyCreation(result, epoch);
+  }
+
+  @override
+  Future<String> addParticipation(
+    String name,
+    EthereumAddress requestor,
+    Uint8List pubKey,
+  ) async {
+    return retry(
+      () => _bucket.addParticipation(
+        name,
+        requestor,
+        pubKey,
+        credentials:
+            BlockchainProviderManager().authenticatedProvider!.getCredentails(),
+        transaction: Transaction(
+          from: BlockchainProviderManager().authenticatedProvider!.getAccount(),
+        ),
+      ),
+      retryIf: (e) => e is RPCError,
+    );
+  }
+
+  @override
+  Future<String> requestParticipation(
+    String name,
+    EthereumAddress requestor,
+    Uint8List pubKey,
+    String deviceName,
+    EthereumAddress device,
+    Uint8List devicePubKey,
+    Uint8List signature,
+  ) async {
+    return retry(
+      () => _bucket.requestParticipation(
+        name,
+        requestor,
+        pubKey,
+        deviceName,
+        device,
+        devicePubKey,
+        signature,
+        credentials:
+            BlockchainProviderManager().authenticatedProvider!.getCredentails(),
+        transaction: Transaction(
+          from: BlockchainProviderManager().authenticatedProvider!.getAccount(),
+        ),
+      ),
+      retryIf: (e) => e is RPCError,
+    );
+  }
+
+  @override
+  Future<String> acceptParticipation(
+    EthereumAddress requestor, {
+    int? baseFee,
+  }) async {
+    return retry(
+      () => _bucket.acceptParticipation(
+        requestor,
+        credentials:
+            BlockchainProviderManager().authenticatedProvider!.getCredentails(),
+        transaction: Transaction(
+          from: BlockchainProviderManager().authenticatedProvider!.getAccount(),
+          maxGas: 3000000,
+          value:
+              baseFee != null ? EtherAmount.inWei(BigInt.from(baseFee)) : null,
+        ),
+      ),
+      retryIf: (e) => e is RPCError,
+    );
+  }
+
+  @override
+  Future<int> getAllEpochsCount() async {
+    return (await retry(
+      () => _bucket.allEpochsCount(),
+      retryIf: (e) => e is RPCError,
+    ))
+        .toInt();
+  }
+
+  @override
+  Future<int> getEpoch(int number) async {
+    return (await retry(
+      () => _bucket.allEpochs(BigInt.from(number)),
+      retryIf: (e) => e is RPCError,
+    ))
+        .toInt();
+  }
+
+  @override
+  Future<EpochToParticipantToKeyMapping> getKeyMapping(
+    int epoch,
+    EthereumAddress participant,
+  ) async {
+    final epochToParticipantToKeyMapping = await retry(
+      () => _bucket.epochToParticipantToKeyMapping(
+        BigInt.from(epoch),
+        participant,
+      ),
+      retryIf: (e) => e is RPCError,
+    );
+    return epochToParticipantToKeyMapping;
+  }
+
+  Future<int> _getGenesis() async {
+    return (await retry(
+      () => _bucket.GENESIS(),
+      retryIf: (e) => e is RPCError,
+    ))
+        .toInt();
+  }
+
+  Future<int> _getBlocksPerEpoch() async {
+    return (await retry(
+      () => _bucket.EPOCH(),
+      retryIf: (e) => e is RPCError,
+    ))
+        .toInt();
+  }
+
+  Future<int> _getCurrentBlock() async {
+    return (await retry(
+      () => _bucket.client.getBlockNumber(),
+      retryIf: (e) => e is RPCError,
+    ))
+        .toInt();
   }
 }

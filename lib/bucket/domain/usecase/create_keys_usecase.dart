@@ -22,9 +22,9 @@ class CreateKeysUseCase implements UseCase<KeyCreation?, void> {
   );
 
   @override
-  Future<Either<Failure, KeyCreation?>> call(
+  Future<Either<Failure, KeyCreation?>> call([
     void params,
-  ) async {
+  ]) async {
     try {
       final allParticipants = await participantRepository.getAllParticipants();
       final hexOwnPublicKey = ipfsVaultRepository.getOwnPublicKey();

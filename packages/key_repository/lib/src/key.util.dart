@@ -5,9 +5,13 @@ import 'package:web3dart/crypto.dart';
 
 // The public key needs to be in uncompressed form starting with 0x04...
 ECPublicKey hexToPublicKey(String publicKeyHex) {
+  var adaptedKey = publicKeyHex;
+  if (!publicKeyHex.startsWith("04")) {
+    adaptedKey = "04$publicKeyHex";
+  }
   final ecParams = ECCurve_secp256k1();
-  final x = BigInt.parse(publicKeyHex.substring(2, 66), radix: 16);
-  final y = BigInt.parse(publicKeyHex.substring(66), radix: 16);
+  final x = BigInt.parse(adaptedKey.substring(2, 66), radix: 16);
+  final y = BigInt.parse(adaptedKey.substring(66), radix: 16);
   final ecPoint = ecParams.curve.createPoint(x, y);
   return ECPublicKey(ecPoint, ecParams);
 }
@@ -88,6 +92,18 @@ Uint8List bigIntToBytes(BigInt bigInt) {
   return result;
 }
 
+Uint8List writeBigInt(BigInt number) {
+  // Not handling negative numbers. Decide how you want to do that.
+  int bytes = (number.bitLength + 7) >> 3;
+  var b256 = BigInt.from(256);
+  var result = Uint8List(bytes);
+  for (int i = 0; i < bytes; i++) {
+    result[i] = number.remainder(b256).toInt();
+    number = number >> 8;
+  }
+  return result;
+}
+
 Uint8List aesEncrypt(Uint8List data, Uint8List key, Uint8List iv) {
   final CBCBlockCipher cbcCipher = CBCBlockCipher(AESEngine());
   final ParametersWithIV<KeyParameter> ivParams =
@@ -100,7 +116,12 @@ Uint8List aesEncrypt(Uint8List data, Uint8List key, Uint8List iv) {
   final PaddedBlockCipherImpl paddedCipher =
       PaddedBlockCipherImpl(PKCS7Padding(), cbcCipher);
   paddedCipher.init(true, paddingParams);
-  return paddedCipher.process(data);
+  final encrypted = paddedCipher.process(data);
+  final decrypted = aesDecrypt(encrypted, key, iv);
+  if (bytesToHex(data) != bytesToHex(decrypted)) {
+    throw Exception("Decryption does not work!!!");
+  }
+  return encrypted;
 }
 
 Uint8List aesDecrypt(Uint8List data, Uint8List key, Uint8List iv) {
@@ -110,7 +131,9 @@ Uint8List aesDecrypt(Uint8List data, Uint8List key, Uint8List iv) {
   final PaddedBlockCipherParameters<ParametersWithIV<KeyParameter>, Null>
       paddingParams =
       PaddedBlockCipherParameters<ParametersWithIV<KeyParameter>, Null>(
-          ivParams, null);
+    ivParams,
+    null,
+  );
   final PaddedBlockCipherImpl paddedCipher =
       PaddedBlockCipherImpl(PKCS7Padding(), cbcCipher);
   paddedCipher.init(false, paddingParams);

@@ -182,7 +182,10 @@ class AccessControl extends _i1.GeneratedContract {
         result.topics!,
         result.data!,
       );
-      return RoleAdminChanged(decoded);
+      return RoleAdminChanged(
+        decoded,
+        result,
+      );
     });
   }
 
@@ -203,7 +206,10 @@ class AccessControl extends _i1.GeneratedContract {
         result.topics!,
         result.data!,
       );
-      return RoleGranted(decoded);
+      return RoleGranted(
+        decoded,
+        result,
+      );
     });
   }
 
@@ -224,14 +230,19 @@ class AccessControl extends _i1.GeneratedContract {
         result.topics!,
         result.data!,
       );
-      return RoleRevoked(decoded);
+      return RoleRevoked(
+        decoded,
+        result,
+      );
     });
   }
 }
 
 class RoleAdminChanged {
-  RoleAdminChanged(List<dynamic> response)
-      : role = (response[0] as _i2.Uint8List),
+  RoleAdminChanged(
+    List<dynamic> response,
+    this.event,
+  )   : role = (response[0] as _i2.Uint8List),
         previousAdminRole = (response[1] as _i2.Uint8List),
         newAdminRole = (response[2] as _i2.Uint8List);
 
@@ -240,11 +251,15 @@ class RoleAdminChanged {
   final _i2.Uint8List previousAdminRole;
 
   final _i2.Uint8List newAdminRole;
+
+  final _i1.FilterEvent event;
 }
 
 class RoleGranted {
-  RoleGranted(List<dynamic> response)
-      : role = (response[0] as _i2.Uint8List),
+  RoleGranted(
+    List<dynamic> response,
+    this.event,
+  )   : role = (response[0] as _i2.Uint8List),
         account = (response[1] as _i1.EthereumAddress),
         sender = (response[2] as _i1.EthereumAddress);
 
@@ -253,11 +268,15 @@ class RoleGranted {
   final _i1.EthereumAddress account;
 
   final _i1.EthereumAddress sender;
+
+  final _i1.FilterEvent event;
 }
 
 class RoleRevoked {
-  RoleRevoked(List<dynamic> response)
-      : role = (response[0] as _i2.Uint8List),
+  RoleRevoked(
+    List<dynamic> response,
+    this.event,
+  )   : role = (response[0] as _i2.Uint8List),
         account = (response[1] as _i1.EthereumAddress),
         sender = (response[2] as _i1.EthereumAddress);
 
@@ -266,4 +285,6 @@ class RoleRevoked {
   final _i1.EthereumAddress account;
 
   final _i1.EthereumAddress sender;
+
+  final _i1.FilterEvent event;
 }

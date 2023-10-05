@@ -8,7 +8,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 version: 1.0.0+1
 
 environment:
-  sdk: '>=2.17.0 <3.0.0'
+  sdk: '>3.0.0'
   
 dependencies:
   flutter:
@@ -19,13 +19,16 @@ dependencies:
 
   cupertino_icons: ^1.0.2
 
-  http: ^0.13.5
+  http: ^1.1.0 # ^0.13.5
   equatable: ^2.0.5
-  flutter_envify: ^3.0.1
-  walletconnect_dart: ^0.0.11
-  web3dart: ^2.6.1
+  # flutter_envify: ^3.0.1
+  envied: ^0.3.0+3
+  # walletconnect_dart: ^0.0.11
+  walletconnect_flutter_v2: ^2.0.12
+  web3dart: 2.7.1 #^2.5.3
   web3auth_flutter: ^1.0.3
-  qr_flutter: ^4.0.0
+  qr_flutter: ^4.1.0
+  
 
   blockchain_provider: 
     path: './packages/blockchain_provider'
@@ -43,6 +46,8 @@ dependencies:
     path: './packages/infura_ipfs_api'
   pinata_ipfs_api: 
     path: './packages/pinata_ipfs_api'
+  crust_ipfs_api: 
+    path: './packages/crust_ipfs_api'
   key_repository: 
     path: './packages/key_repository'
   file_storage_repository: 
@@ -52,7 +57,7 @@ dependencies:
   url_launcher: ^6.1.7
   flutter_bloc: ^8.1.1
   hydrated_bloc: ^9.0.0 
-  json_annotation: ^4.8.0
+  json_annotation: ^4.8.1
   path: ^1.8.3
   path_provider: ^2.0.14
   formz: ^0.4.1
@@ -65,7 +70,7 @@ dependencies:
   provider: ^6.0.5
   flutter_slidable: ^2.0.0
   json_theme: ^4.0.3+4
-  flutter_expandable_fab: ^1.7.0
+  flutter_expandable_fab: ^2.0.0
   universal_html: ^2.2.1
   encrypt: ^5.0.1
   pointycastle: ^3.7.2
@@ -74,10 +79,18 @@ dependencies:
   simple_gradient_text: ^1.2.4
   file_picker: ^5.2.10
   hive: ^2.2.3
-  cryptography_flutter: ^2.0.2
+  cryptography_flutter: ^2.2.0
   uuid: ^3.0.7
   async: ^2.10.0
   flutter_svg: ^2.0.7
+  carousel_slider: ^4.2.1
+  dots_indicator: ^3.0.0
+  connectivity_plus: ^2.3.9
+  shared_preferences: ^2.2.0
+  retry: ^3.1.2
+  badges: ^3.1.2
+  web_socket_channel: ^2.4.0
+  app_links: ^3.4.5
 
   
 dev_dependencies:
@@ -86,8 +99,9 @@ dev_dependencies:
 
   flutter_lints: ^2.0.0
   analyzer: 
-  build_runner: 
-  flutter_envify_generator: 
+  build_runner:
+  # flutter_envify_generator: 
+  envied_generator: ^0.3.0+3
   web3dart_builders: ^0.0.2
   json_serializable: ^6.6.1
   hive_generator: ^2.0.0
@@ -97,6 +111,5 @@ flutter:
   generate: true
   assets:
     - assets/images/
-    - assets/contracts/
     - assets/theme_dark.json
     - assets/theme_light.json

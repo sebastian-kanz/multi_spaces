@@ -1,4 +1,5 @@
-import 'package:blockchain_provider/blockchain_provider.dart';
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
@@ -11,6 +12,7 @@ import 'package:multi_spaces/core/widgets/nav_drawer.dart';
 import 'package:multi_spaces/transaction/bloc/transaction_bloc.dart';
 import 'package:provider/provider.dart';
 import 'package:simple_gradient_text/simple_gradient_text.dart';
+import 'package:web3dart/web3dart.dart';
 
 class SpacePage extends StatelessWidget {
   const SpacePage({super.key});
@@ -22,13 +24,11 @@ class SpacePage extends StatelessWidget {
         BlocProvider(
           lazy: false,
           create: (context) {
-            final providers =
-                Provider.of<List<BlockchainProvider>>(context, listen: false);
             final multiSpacesState = BlocProvider.of<MultiSpacesBloc>(
               context,
             ).state as MultiSpacesReady;
             final address = multiSpacesState.spaceAddress.hex;
-            final spaceRepository = SpaceRepository(providers, address);
+            final spaceRepository = SpaceRepository(address);
             return SpaceBloc(
               spaceRepository: spaceRepository,
               transactionBloc: BlocProvider.of<TransactionBloc>(
@@ -88,60 +88,18 @@ class _SpacePageViewState extends State<SpacePageView> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(20.0),
-                          // child: const FlutterLogo(
-                          //   size: 80.0,
-                          // ),
-
-                          child: Image.asset(
-                            'assets/images/logo.png',
-                            height: 100,
-                            width: 100,
-                            fit: BoxFit.fitWidth,
-                          ),
-                        ),
-                        GradientText(
-                          'MultiSpaces',
-                          style: const TextStyle(
-                            fontSize: 20.0,
-                          ),
-                          colors: [
-                            // Color.fromARGB(255, 216, 68, 27),
-                            Color.fromARGB(255, 205, 27, 119),
-                            // Color.fromARGB(255, 10, 92, 151),
-                            Color.fromARGB(255, 81, 178, 108),
-                          ],
-                        ),
-                        Container(
-                          padding: const EdgeInsets.all(20.0),
-                          child: BlocBuilder<PaymentBloc, PaymentState>(
-                            builder: (context, state) {
-                              Widget freeBuckets = const Text("loading...");
-                              if (state.runtimeType == PaymentInitialized) {
-                                if ((state as PaymentInitialized)
-                                    .addBucketIsFreeOfCharge) {
-                                  freeBuckets = const Text("∞");
-                                } else {
-                                  freeBuckets = Text(
-                                    "${state.addBucketVouchers + state.balance ~/ state.defaultPayment}",
-                                  );
-                                }
-                              }
-                              return Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  const Text("Free Buckets left:"),
-                                  freeBuckets
-                                ],
-                              );
-                            },
-                          ),
-                        ),
-                      ],
+                    Padding(
+                      padding: EdgeInsets.symmetric(vertical: 32),
+                      child: GradientText(
+                        'MultiSpaces',
+                        textScaleFactor: 2.5,
+                        colors: [
+                          // Color.fromARGB(255, 216, 68, 27),
+                          Color.fromARGB(255, 205, 27, 119),
+                          // Color.fromARGB(255, 10, 92, 151),
+                          Color.fromARGB(255, 81, 178, 108),
+                        ],
+                      ),
                     ),
                     BlocBuilder<TransactionBloc, TransactionState>(
                       builder: (context, state) {
@@ -156,7 +114,7 @@ class _SpacePageViewState extends State<SpacePageView> {
               ),
             ),
             Expanded(
-              flex: 3,
+              flex: 4,
               child: BlocBuilder<SpaceBloc, SpaceState>(
                 builder: (context, state) {
                   if (state.runtimeType == SpaceInitialized) {
@@ -180,7 +138,10 @@ class _SpacePageViewState extends State<SpacePageView> {
                                 motion: const BehindMotion(),
                                 children: [
                                   SlideAction(
-                                    color: Colors.green,
+                                    foregroundColor:
+                                        Theme.of(context).colorScheme.onPrimary,
+                                    backgroundColor:
+                                        Theme.of(context).colorScheme.primary,
                                     icon: Icons.share,
                                     fct: (context) => print("Share"),
                                     label: 'Share',
@@ -191,7 +152,11 @@ class _SpacePageViewState extends State<SpacePageView> {
                                 motion: const BehindMotion(),
                                 children: [
                                   SlideAction(
-                                    color: Colors.blue,
+                                    foregroundColor:
+                                        Theme.of(context).colorScheme.secondary,
+                                    backgroundColor: Theme.of(context)
+                                        .colorScheme
+                                        .onSecondary,
                                     icon: Icons.change_circle,
                                     fct: (_) {
                                       _displayTextInputDialog(context, 'Rename',
@@ -210,7 +175,11 @@ class _SpacePageViewState extends State<SpacePageView> {
                                     label: 'Rename',
                                   ),
                                   SlideAction(
-                                    color: Colors.red,
+                                    foregroundColor:
+                                        Theme.of(context).colorScheme.tertiary,
+                                    backgroundColor: Theme.of(context)
+                                        .colorScheme
+                                        .onTertiary,
                                     icon: Icons.delete_forever,
                                     fct: (_) {
                                       context.read<SpaceBloc>().add(
@@ -241,16 +210,29 @@ class _SpacePageViewState extends State<SpacePageView> {
           ],
         ),
         floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-        floatingActionButton: FloatingActionButton.extended(
-          elevation: 4.0,
-          icon: const Icon(Icons.add),
-          label: const Text('Add a Bucket'),
-          onPressed: () =>
-              _displayTextInputDialog(context, 'Create', (String name) {
+        floatingActionButton: InkWell(
+          splashColor: Colors.blue,
+          onLongPress: () {
             context.read<SpaceBloc>().add(
-                  CreateBucketEvent(newBucketName),
+                  AddExternalBucketEvent(
+                    "external${Random.secure().nextInt(999999)}",
+                    EthereumAddress.fromHex(
+                      "0x247272ea3e248055ddc7770b8d28673348fccd1a",
+                    ),
+                  ),
                 );
-          }),
+          },
+          child: FloatingActionButton.extended(
+            elevation: 4.0,
+            icon: const Icon(Icons.add),
+            label: const Text('Add a Bucket'),
+            onPressed: () =>
+                _displayTextInputDialog(context, 'Create', (String name) {
+              context.read<SpaceBloc>().add(
+                    CreateBucketEvent(newBucketName),
+                  );
+            }),
+          ),
         ),
         bottomNavigationBar: BottomAppBar(
           color: Theme.of(context).bottomAppBarColor,
@@ -289,6 +271,7 @@ class _SpacePageViewState extends State<SpacePageView> {
       builder: (context) {
         return AlertDialog(
           title: const Text('Bucket Name'),
+          actionsAlignment: MainAxisAlignment.spaceBetween,
           content: TextField(
             onChanged: (value) {
               setState(() {
@@ -301,15 +284,32 @@ class _SpacePageViewState extends State<SpacePageView> {
           actions: <Widget>[
             ElevatedButton(
               style: ButtonStyle(
-                backgroundColor: MaterialStateProperty.all(Colors.red),
+                backgroundColor: MaterialStateProperty.all(
+                  Theme.of(context).colorScheme.secondary,
+                ),
               ),
               onPressed: () {
                 Navigator.pop(context);
               },
-              child: const Text('Cancel'),
+              child: Text(
+                'Cancel',
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onPrimary,
+                ),
+              ),
             ),
             ElevatedButton(
-              child: Text(label),
+              style: ButtonStyle(
+                backgroundColor: MaterialStateProperty.all(
+                  Theme.of(context).colorScheme.primary,
+                ),
+              ),
+              child: Text(
+                label,
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onPrimary,
+                ),
+              ),
               onPressed: () {
                 fct(newBucketName);
                 Navigator.pop(context);
@@ -343,6 +343,7 @@ class SpaceListTile extends StatelessWidget {
       onTap: () => Navigator.of(context).push<void>(
         MaterialPageRoute<SpacePage>(
           builder: (_) {
+            print(spaceState.buckets[index].address.hex);
             return MultiBlocProvider(
               providers: [
                 BlocProvider.value(
@@ -366,6 +367,7 @@ class SpaceListTile extends StatelessWidget {
                 bucketAddress: spaceState.buckets[index].address,
                 ownerName: spaceState.owner.name,
                 ownerAddress: spaceState.owner.adr,
+                isExternal: spaceState.buckets[index].isExternal,
               ),
             );
           },
@@ -401,14 +403,16 @@ class SpaceListTile extends StatelessWidget {
 class SlideAction extends StatelessWidget {
   const SlideAction({
     Key? key,
-    required this.color,
+    required this.backgroundColor,
+    required this.foregroundColor,
     required this.icon,
     required this.label,
     required this.fct,
     this.flex = 1,
   }) : super(key: key);
 
-  final Color color;
+  final Color backgroundColor;
+  final Color foregroundColor;
   final IconData icon;
   final int flex;
   final Function fct;
@@ -418,8 +422,8 @@ class SlideAction extends StatelessWidget {
   Widget build(BuildContext context) {
     return SlidableAction(
       flex: flex,
-      backgroundColor: color,
-      foregroundColor: Colors.white,
+      backgroundColor: backgroundColor,
+      foregroundColor: foregroundColor,
       onPressed: (BuildContext context) => fct(context),
       icon: icon,
       label: label,

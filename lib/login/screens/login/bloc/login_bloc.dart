@@ -48,10 +48,10 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
     ));
   }
 
-  void _initRepositories(BlockchainProvider provider) {
-    _authenticationRepository.init(provider);
-    _blockchainRepository.init(provider);
-    _userRepository.init(provider);
+  void _initRepositories() {
+    _authenticationRepository.init();
+    _blockchainRepository.init();
+    _userRepository.init();
   }
 
   void _onEmailSubmitted(
@@ -61,9 +61,8 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
     if (state.status.isValidated) {
       emit(state.copyWith(status: FormzStatus.submissionInProgress));
       try {
-        final provider = EthereumWeb3AuthProvider();
-
-        _initRepositories(provider);
+        BlockchainProviderManager().selectProvider<EthereumWeb3AuthProvider>();
+        _initRepositories();
         await _authenticationRepository.logIn({
           'provider': Provider.email_passwordless,
           'email': state.email.value
@@ -81,9 +80,8 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
     Emitter<LoginState> emit,
   ) async {
     try {
-      final provider = EthereumWeb3AuthProvider();
-
-      _initRepositories(provider);
+      BlockchainProviderManager().selectProvider<EthereumWeb3AuthProvider>();
+      _initRepositories();
       await _authenticationRepository.logIn({'provider': Provider.google});
       emit(state.copyWith(status: FormzStatus.submissionSuccess));
     } catch (e) {
@@ -97,9 +95,8 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
     Emitter<LoginState> emit,
   ) async {
     try {
-      final provider = EthereumWeb3AuthProvider();
-
-      _initRepositories(provider);
+      BlockchainProviderManager().selectProvider<EthereumWeb3AuthProvider>();
+      _initRepositories();
       await _authenticationRepository.logIn({'provider': Provider.facebook});
       emit(state.copyWith(status: FormzStatus.submissionSuccess));
     } catch (e) {
@@ -113,9 +110,8 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
     Emitter<LoginState> emit,
   ) async {
     try {
-      final provider = EthereumWeb3AuthProvider();
-
-      _initRepositories(provider);
+      BlockchainProviderManager().selectProvider<EthereumWeb3AuthProvider>();
+      _initRepositories();
       await _authenticationRepository.logIn({'provider': Provider.twitter});
       emit(state.copyWith(status: FormzStatus.submissionSuccess));
     } catch (e) {
@@ -129,14 +125,14 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
     Emitter<LoginState> emit,
   ) async {
     try {
-      final provider = EthereumWcProvider();
-
-      _initRepositories(provider);
+      BlockchainProviderManager().selectProvider<EthereumWcProvider>();
+      _initRepositories();
       await _authenticationRepository.logIn({
         'onDisplayUri': (uri) async {
           logger.d(uri);
           if (!await canLaunchUrl(Uri.parse(uri))) {
             emit(state.copyWith(status: FormzStatus.submissionFailure));
+            return;
           }
           await launchUrl(Uri.parse(uri));
         }
@@ -153,9 +149,8 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
     Emitter<LoginState> emit,
   ) async {
     try {
-      final provider = EthereumWcProvider();
-
-      _initRepositories(provider);
+      BlockchainProviderManager().selectProvider<EthereumWcProvider>();
+      _initRepositories();
       await _authenticationRepository.logIn({
         'onDisplayUri': (uri) async {
           logger.d(uri);

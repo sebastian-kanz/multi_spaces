@@ -18,6 +18,8 @@ class ElementEntity {
   EthereumAddress nextElement;
   EthereumAddress previousElement;
 
+  bool synced = true;
+
   ElementEntity(
     this.element,
     this.contentType,
@@ -39,4 +41,36 @@ class ElementEntity {
   bool hasPrevious() =>
       parentElement.compareTo(zeroAddress) == 0 ? false : true;
   bool fulfillsRedundancy() => redundancy >= minRedundancy ? true : false;
+
+  factory ElementEntity.fromJson(Map<String, dynamic> json) => ElementEntity(
+        EthereumAddress.fromHex(json['element']),
+        ContentType.values[json['contentType']],
+        json['created'],
+        EthereumAddress.fromHex(json['creator']),
+        json['dataHash'],
+        json['metaHash'],
+        json['containerHash'],
+        json['holdersCount'],
+        json['redundancy'],
+        json['minRedundancy'],
+        EthereumAddress.fromHex(json['parentElement']),
+        EthereumAddress.fromHex(json['nextElement']),
+        EthereumAddress.fromHex(json['previousElement']),
+      );
+
+  Map<String, dynamic> toJson() => {
+        'element': element.hex,
+        'contentType': contentType.index,
+        'created': created,
+        'creator': creator.hex,
+        'dataHash': dataHash,
+        'metaHash': metaHash,
+        'containerHash': containerHash,
+        'holdersCount': holdersCount,
+        'redundancy': redundancy,
+        'minRedundancy': minRedundancy,
+        'parentElement': parentElement.hex,
+        'nextElement': nextElement.hex,
+        'previousElement': previousElement.hex,
+      };
 }

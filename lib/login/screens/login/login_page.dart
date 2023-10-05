@@ -171,7 +171,7 @@ class LoginPageViewState extends State<LoginPageView>
                 children: <Widget>[
                   const Text("Scan QR code to login."),
                   const SizedBox(height: kSpaceS),
-                  QrImage(
+                  QrImageView(
                     data: state.deeplink,
                     backgroundColor: Theme.of(context).colorScheme.onBackground,
                   ),

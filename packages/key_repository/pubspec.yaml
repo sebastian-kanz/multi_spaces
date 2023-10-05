@@ -15,6 +15,8 @@ dependencies:
   secure_storage:
     path: ../secure_storage
   logger: ^1.1.0
+  blockchain_provider: 
+    path: '../blockchain_provider'
 
 
 dev_dependencies:

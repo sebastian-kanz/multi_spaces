@@ -15,14 +15,14 @@ class PaymentBloc extends Bloc<PaymentEvent, PaymentState> {
   final _logger = getLogger();
   late final StreamSubscription _limitedActionSubscription;
   late final StreamSubscription _payableActionSubscription;
-  late final StreamSubscription _newBlocksSubscription;
+  late final StreamSubscription _limitsInitializedSubscription;
 
   PaymentBloc(
       {required PaymentRepository paymentRepository,
       required TransactionBloc transactionBloc})
       : _paymentRepository = paymentRepository,
         super(const PaymentStateInitial()) {
-    on<InitPaymentEvent>(_onInitPaymentEvent);
+    on<InitPaymentsEvent>(_onInitPaymentEvent);
     on<LoadPaymentEvent>(_onLoadPaymentEvent);
     on<AddFundsEvent>(_onAddFundsEvent);
 
@@ -44,25 +44,35 @@ class PaymentBloc extends Bloc<PaymentEvent, PaymentState> {
       onError: (error) => _logger.d(error),
     );
 
-    _newBlocksSubscription = _paymentRepository.listenNewBlocks.listen(
-      (newBlock) async {
+    _limitsInitializedSubscription =
+        _paymentRepository.listenLimitsInitialized.listen(
+      (limitsInitializedEvent) async {
+        _logger.d(
+          'Limits initialized for account ${limitsInitializedEvent.account}',
+        );
         if (state.runtimeType == LimitsUninitialized) {
-          final receipt = await _paymentRepository.getTransactionReceipt(
-              (state as LimitsUninitialized).transactionHash);
-          if (receipt != null) {
-            if (receipt.status == true) {
-              add(
-                LoadPaymentEvent(
-                  account: (state as LimitsUninitialized).account,
-                ),
-              );
-            } else {
-              _logger.d(receipt);
+          for (var i = 0;
+              i < (state as LimitsUninitialized).accounts.length;
+              i++) {
+            final receipt = await _paymentRepository.getTransactionReceipt(
+              (state as LimitsUninitialized).transactionHashes[i],
+            );
+            if (receipt != null) {
+              if (receipt.status == true &&
+                  (state as LimitsUninitialized).selected == i) {
+                add(
+                  LoadPaymentEvent(
+                    account: (state as LimitsUninitialized).accounts[i],
+                  ),
+                );
+              } else {
+                _logger.d(receipt);
+              }
             }
           }
         }
       },
-      onError: (error) => _logger.e(error),
+      onError: (error) => _logger.d(error),
     );
   }
 
@@ -70,7 +80,7 @@ class PaymentBloc extends Bloc<PaymentEvent, PaymentState> {
   Future<void> close() {
     _limitedActionSubscription.cancel();
     _payableActionSubscription.cancel();
-    _newBlocksSubscription.cancel();
+    _limitsInitializedSubscription.cancel();
     return super.close();
   }
 
@@ -80,38 +90,22 @@ class PaymentBloc extends Bloc<PaymentEvent, PaymentState> {
   ) async {
     try {
       emit(const LimitsInitialized());
-      final limit = await _paymentRepository.getLimit(event.account);
-      final defaultPayment =
-          await _paymentRepository.defaultPayments(BigInt.from(0));
-      final defaultLimit =
-          await _paymentRepository.defaultLimits(BigInt.from(0));
-      final isUnlimited = await _paymentRepository.isUnlimited(event.account);
-      final balance = await _paymentRepository.balance(event.account);
-      final createSpaceIsFreeOfCharge =
-          await _paymentRepository.createSpaceIsFreeOfCharge(event.account);
-      final addBucketIsFreeOfCharge =
-          await _paymentRepository.addBucketIsFreeOfCharge(event.account);
-      final addParticipantIsFreeOfCharge =
-          await _paymentRepository.addParticipantIsFreeOfCharge(event.account);
-      final createSpaceVoucherCount =
-          await _paymentRepository.createSpaceVoucherCount(event.account);
-      final addBucketVoucherCount =
-          await _paymentRepository.addBucketVoucherCount(event.account);
-      final addParticipantVoucherCount =
-          await _paymentRepository.addParticipantVoucherCount(event.account);
+      final paymentState = await _paymentRepository.getPaymentState(
+        event.account,
+      );
       emit(
         PaymentInitialized(
-          limit: limit.toInt(),
-          isUnlimited: isUnlimited,
-          balance: balance.toInt() ~/ defaultPayment.toInt(),
-          createSpaceVouchers: createSpaceVoucherCount.toInt(),
-          addBucketVouchers: addBucketVoucherCount.toInt(),
-          addParticipantVouchers: addParticipantVoucherCount.toInt(),
-          createSpaceIsFreeOfCharge: createSpaceIsFreeOfCharge,
-          addBucketIsFreeOfCharge: addBucketIsFreeOfCharge,
-          addParticipantIsFreeOfCharge: addParticipantIsFreeOfCharge,
-          defaultLimit: defaultLimit.toInt(),
-          defaultPayment: defaultPayment.toInt(),
+          limit: paymentState.var1.toInt(),
+          isUnlimited: paymentState.var2,
+          balance: paymentState.var3.toInt() ~/ paymentState.var11.toInt(),
+          createSpaceVouchers: paymentState.var4.toInt(),
+          addBucketVouchers: paymentState.var5.toInt(),
+          addParticipantVouchers: paymentState.var6.toInt(),
+          createSpaceIsFreeOfCharge: paymentState.var7,
+          addBucketIsFreeOfCharge: paymentState.var8,
+          addParticipantIsFreeOfCharge: paymentState.var9,
+          defaultLimit: paymentState.var10.toInt(),
+          defaultPayment: paymentState.var11.toInt(),
         ),
       );
     } catch (e) {
@@ -121,51 +115,47 @@ class PaymentBloc extends Bloc<PaymentEvent, PaymentState> {
   }
 
   void _onInitPaymentEvent(
-    InitPaymentEvent event,
+    InitPaymentsEvent event,
     Emitter<PaymentState> emit,
   ) async {
     try {
-      final limitsInitialized =
-          await _paymentRepository.limitInitialized(event.account);
+      // TODO: Add info banner to user that explains current action
+      var limitsInitialized = true;
+      for (final account in event.accounts) {
+        final accLimitsInitialized =
+            await _paymentRepository.limitInitialized(account);
+        if (!accLimitsInitialized) {
+          limitsInitialized = false;
+        }
+      }
+
       if (limitsInitialized) {
-        final limit = await _paymentRepository.getLimit(event.account);
-        final defaultPayment =
-            await _paymentRepository.defaultPayments(BigInt.from(0));
-        final defaultLimit =
-            await _paymentRepository.defaultLimits(BigInt.from(0));
-        final isUnlimited = await _paymentRepository.isUnlimited(event.account);
-        final balance = await _paymentRepository.balance(event.account);
-        final createSpaceIsFreeOfCharge =
-            await _paymentRepository.createSpaceIsFreeOfCharge(event.account);
-        final addBucketIsFreeOfCharge =
-            await _paymentRepository.addBucketIsFreeOfCharge(event.account);
-        final addParticipantIsFreeOfCharge = await _paymentRepository
-            .addParticipantIsFreeOfCharge(event.account);
-        final createSpaceVoucherCount =
-            await _paymentRepository.createSpaceVoucherCount(event.account);
-        final addBucketVoucherCount =
-            await _paymentRepository.addBucketVoucherCount(event.account);
-        final addParticipantVoucherCount =
-            await _paymentRepository.addParticipantVoucherCount(event.account);
+        final paymentState = await _paymentRepository.getPaymentState(
+          event.accounts[event.selected],
+        );
         emit(
           PaymentInitialized(
-            limit: limit.toInt(),
-            isUnlimited: isUnlimited,
-            balance: balance.toInt() ~/ defaultPayment.toInt(),
-            createSpaceVouchers: createSpaceVoucherCount.toInt(),
-            addBucketVouchers: addBucketVoucherCount.toInt(),
-            addParticipantVouchers: addParticipantVoucherCount.toInt(),
-            createSpaceIsFreeOfCharge: createSpaceIsFreeOfCharge,
-            addBucketIsFreeOfCharge: addBucketIsFreeOfCharge,
-            addParticipantIsFreeOfCharge: addParticipantIsFreeOfCharge,
-            defaultLimit: defaultLimit.toInt(),
-            defaultPayment: defaultPayment.toInt(),
+            limit: paymentState.var1.toInt(),
+            isUnlimited: paymentState.var2,
+            balance: paymentState.var3.toInt() ~/ paymentState.var11.toInt(),
+            createSpaceVouchers: paymentState.var4.toInt(),
+            addBucketVouchers: paymentState.var5.toInt(),
+            addParticipantVouchers: paymentState.var6.toInt(),
+            createSpaceIsFreeOfCharge: paymentState.var7,
+            addBucketIsFreeOfCharge: paymentState.var8,
+            addParticipantIsFreeOfCharge: paymentState.var9,
+            defaultLimit: paymentState.var10.toInt(),
+            defaultPayment: paymentState.var11.toInt(),
           ),
         );
       } else {
-        final receipt = await _paymentRepository.initLimits(event.account);
+        // TODO: What about buckets later?
+        final receipts = await _paymentRepository.initLimits(event.accounts);
         emit(LimitsUninitialized(
-            transactionHash: receipt, account: event.account));
+          transactionHashes: receipts,
+          accounts: event.accounts,
+          selected: event.selected,
+        ));
       }
     } catch (e) {
       _logger.e(e);
@@ -179,38 +169,23 @@ class PaymentBloc extends Bloc<PaymentEvent, PaymentState> {
   ) async {
     try {
       await _paymentRepository.increaseCredit(event.account);
-      final defaultPayment =
-          await _paymentRepository.defaultPayments(BigInt.from(0));
-      final defaultLimit =
-          await _paymentRepository.defaultLimits(BigInt.from(0));
-      final limit = await _paymentRepository.getLimit(event.account);
-      final isUnlimited = await _paymentRepository.isUnlimited(event.account);
-      final balance = await _paymentRepository.balance(event.account);
-      final createSpaceIsFreeOfCharge =
-          await _paymentRepository.createSpaceIsFreeOfCharge(event.account);
-      final addBucketIsFreeOfCharge =
-          await _paymentRepository.addBucketIsFreeOfCharge(event.account);
-      final addParticipantIsFreeOfCharge =
-          await _paymentRepository.addParticipantIsFreeOfCharge(event.account);
-      final createSpaceVoucherCount =
-          await _paymentRepository.createSpaceVoucherCount(event.account);
-      final addBucketVoucherCount =
-          await _paymentRepository.addBucketVoucherCount(event.account);
-      final addParticipantVoucherCount =
-          await _paymentRepository.addParticipantVoucherCount(event.account);
+
+      final paymentState = await _paymentRepository.getPaymentState(
+        event.account,
+      );
       emit(
         PaymentInitialized(
-          limit: limit.toInt(),
-          isUnlimited: isUnlimited,
-          balance: balance.toInt(),
-          createSpaceVouchers: createSpaceVoucherCount.toInt(),
-          addBucketVouchers: addBucketVoucherCount.toInt(),
-          addParticipantVouchers: addParticipantVoucherCount.toInt(),
-          createSpaceIsFreeOfCharge: createSpaceIsFreeOfCharge,
-          addBucketIsFreeOfCharge: addBucketIsFreeOfCharge,
-          addParticipantIsFreeOfCharge: addParticipantIsFreeOfCharge,
-          defaultLimit: defaultLimit.toInt(),
-          defaultPayment: defaultPayment.toInt(),
+          limit: paymentState.var1.toInt(),
+          isUnlimited: paymentState.var2,
+          balance: paymentState.var3.toInt() ~/ paymentState.var11.toInt(),
+          createSpaceVouchers: paymentState.var4.toInt(),
+          addBucketVouchers: paymentState.var5.toInt(),
+          addParticipantVouchers: paymentState.var6.toInt(),
+          createSpaceIsFreeOfCharge: paymentState.var7,
+          addBucketIsFreeOfCharge: paymentState.var8,
+          addParticipantIsFreeOfCharge: paymentState.var9,
+          defaultLimit: paymentState.var10.toInt(),
+          defaultPayment: paymentState.var11.toInt(),
         ),
       );
     } catch (e) {

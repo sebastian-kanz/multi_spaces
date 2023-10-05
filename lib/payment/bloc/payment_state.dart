@@ -12,13 +12,16 @@ class PaymentStateInitial extends PaymentState {
 }
 
 class LimitsUninitialized extends PaymentState {
-  final String transactionHash;
-  final EthereumAddress account;
+  final List<String> transactionHashes;
+  final List<EthereumAddress> accounts;
+  final int selected;
   const LimitsUninitialized(
-      {required this.transactionHash, required this.account});
+      {required this.transactionHashes,
+      required this.accounts,
+      required this.selected});
 
   @override
-  List<Object> get props => [transactionHash, account];
+  List<Object> get props => [transactionHashes, accounts, selected];
 }
 
 class LimitsInitialized extends PaymentState {
@@ -28,10 +31,10 @@ class LimitsInitialized extends PaymentState {
 class PaymentInitialized extends PaymentState {
   final int limit;
   final bool isUnlimited;
-  final int balance;
-  final int createSpaceVouchers;
-  final int addBucketVouchers;
-  final int addParticipantVouchers;
+  final int balance; // credits
+  final int createSpaceVouchers; // voucher
+  final int addBucketVouchers; // voucher
+  final int addParticipantVouchers; // voucher
   final bool createSpaceIsFreeOfCharge;
   final bool addBucketIsFreeOfCharge;
   final bool addParticipantIsFreeOfCharge;

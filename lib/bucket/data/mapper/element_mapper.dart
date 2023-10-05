@@ -1,25 +1,67 @@
-import 'package:http/http.dart';
 import 'package:multi_spaces/bucket/data/models/element_model.dart';
 import 'package:multi_spaces/bucket/domain/entity/element_entity.dart';
 import 'package:multi_spaces/core/env/Env.dart';
-import 'package:web3dart/web3dart.dart';
+import 'package:multi_spaces/core/networking/MultiSpaceClient.dart';
+import 'package:retry/retry.dart';
+import 'package:web3dart/json_rpc.dart';
 
 import '../../../core/contracts/Element.g.dart';
 
 class ElementMapper {
   static Future<ElementModel> fromContract(Element elem) async {
-    final contentType = (await elem.contentType()).toInt();
-    final creationTime = (await elem.creationTime()).toInt();
-    final creator = await elem.creator();
-    final dataHash = await elem.dataHash();
-    final metaHash = await elem.metaHash();
-    final containerHash = await elem.containerHash();
-    final holdersCount = (await elem.holdersCount()).toInt();
-    final redundancy = (await elem.redundancy()).toInt();
-    final minRedundancy = (await elem.minRedundancy()).toInt();
-    final parentElement = await elem.parentElement();
-    final nextElement = await elem.nextElement();
-    final previousElement = await elem.previousElement();
+    final contentType = (await retry(
+      () => elem.contentType(),
+      retryIf: (e) => e is RPCError,
+    ))
+        .toInt();
+    final creationTime = (await retry(
+      () => elem.creationTime(),
+      retryIf: (e) => e is RPCError,
+    ))
+        .toInt();
+    final creator = await retry(
+      () => elem.creator(),
+      retryIf: (e) => e is RPCError,
+    );
+    final dataHash = await retry(
+      () => elem.dataHash(),
+      retryIf: (e) => e is RPCError,
+    );
+    final metaHash = await retry(
+      () => elem.metaHash(),
+      retryIf: (e) => e is RPCError,
+    );
+    final containerHash = await retry(
+      () => elem.containerHash(),
+      retryIf: (e) => e is RPCError,
+    );
+    final holdersCount = (await retry(
+      () => elem.holdersCount(),
+      retryIf: (e) => e is RPCError,
+    ))
+        .toInt();
+    final redundancy = (await retry(
+      () => elem.redundancy(),
+      retryIf: (e) => e is RPCError,
+    ))
+        .toInt();
+    final minRedundancy = (await retry(
+      () => elem.minRedundancy(),
+      retryIf: (e) => e is RPCError,
+    ))
+        .toInt();
+    final parentElement = await retry(
+      () => elem.parentElement(),
+      retryIf: (e) => e is RPCError,
+    );
+    final nextElement = await retry(
+      () => elem.nextElement(),
+      retryIf: (e) => e is RPCError,
+    );
+    final previousElement = await retry(
+      () => elem.previousElement(),
+      retryIf: (e) => e is RPCError,
+    );
 
     return ElementModel(
       elem.self.address,
@@ -59,7 +101,7 @@ class ElementMapper {
   static Element toContract(ElementEntity elementEntity) {
     return Element(
       address: elementEntity.element,
-      client: Web3Client(Env.eth_url, Client()),
+      client: MultiSpaceClient().client,
       chainId: Env.chain_id,
     );
   }

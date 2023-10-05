@@ -3,6 +3,7 @@ import 'dart:typed_data';
 
 import 'package:blockchain_provider/blockchain_provider.dart';
 import 'package:convert/convert.dart';
+import 'package:flutter/src/foundation/change_notifier.dart';
 import 'package:multi_spaces/core/env/Env.dart';
 import 'package:multi_spaces/core/utils/logger.util.dart';
 import 'package:secure_storage/secure_storage.dart';
@@ -11,8 +12,7 @@ import 'package:web3auth_flutter/input.dart';
 import 'package:web3auth_flutter/web3auth_flutter.dart';
 import 'package:web3dart/crypto.dart';
 import 'package:web3dart/web3dart.dart';
-import 'package:http/http.dart';
-
+import 'package:multi_spaces/core/networking/MultiSpaceClient.dart';
 import 'constants.dart';
 
 class EthereumWeb3AuthProvider implements BlockchainProvider {
@@ -27,7 +27,7 @@ class EthereumWeb3AuthProvider implements BlockchainProvider {
   factory EthereumWeb3AuthProvider() => _instance;
 
   EthereumWeb3AuthProvider._internal()
-      : _client = Web3Client(Env.eth_url, Client()),
+      : _client = MultiSpaceClient().client,
         _storage = SecureStorage();
 
   @override
@@ -57,6 +57,7 @@ class EthereumWeb3AuthProvider implements BlockchainProvider {
       );
       _credentials = EthPrivateKey.fromHex(privKey);
     }
+    authNotifier.value = isAuthenticated();
   }
 
   @override
@@ -85,6 +86,7 @@ class EthereumWeb3AuthProvider implements BlockchainProvider {
       } else {
         logger.i("Already logged in.");
       }
+      authNotifier.value = true;
     } on UserCancelledException {
       logger.e("User cancelled.");
     } on UnKnownException {
@@ -102,6 +104,7 @@ class EthereumWeb3AuthProvider implements BlockchainProvider {
       await _storage.delete(WEB3_AUTH_EMAIL_KEY);
       await _storage.delete(WEB3_AUTH_NAME_KEY);
       await _storage.delete(WEB3_AUTH_PROFILE_KEY);
+      authNotifier.value = false;
     } on UserCancelledException {
       logger.e("User cancelled.");
     } on UnKnownException {
@@ -112,19 +115,18 @@ class EthereumWeb3AuthProvider implements BlockchainProvider {
   }
 
   @override
-  Future<String> sign(
-      {required String message, required String address}) async {
-    // TODO: implement sign
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<String> personalSign(
-      {required String message,
-      required String address,
-      required String password}) {
-    // TODO: implement personalSign
-    throw UnimplementedError();
+  Future<String> sign({required String message}) {
+    if (_credentials != null) {
+      return Future.value(
+        bytesToHex(
+          _credentials!.signPersonalMessageToUint8List(
+            Uint8List.fromList(message.codeUnits),
+          ),
+        ),
+      );
+    } else {
+      throw Exception("No valid credentials available");
+    }
   }
 
   @override
@@ -190,13 +192,6 @@ class EthereumWeb3AuthProvider implements BlockchainProvider {
   }
 
   @override
-  Future<String> signTypeData(
-      {required String address, required Map<String, dynamic> typedData}) {
-    // TODO: implement signTypeData
-    throw UnimplementedError();
-  }
-
-  @override
   Future<String> callContract(
       {required DeployedContract contract,
       required ContractFunction function,
@@ -208,7 +203,7 @@ class EthereumWeb3AuthProvider implements BlockchainProvider {
         function: function,
         parameters: params,
         from: _credentials?.address,
-        value: EtherAmount.fromUnitAndValue(EtherUnit.wei, value),
+        value: EtherAmount.fromInt(EtherUnit.wei, value),
       );
       return _client.sendTransaction(_credentials!, transaction);
     } else {
@@ -219,6 +214,11 @@ class EthereumWeb3AuthProvider implements BlockchainProvider {
   @override
   bool isAuthenticated() {
     return _credentials != null;
+  }
+
+  @override
+  bool isInternal() {
+    return false;
   }
 
   @override
@@ -272,4 +272,7 @@ class EthereumWeb3AuthProvider implements BlockchainProvider {
   Future<T> callContract2<T>({required Fct fct}) {
     return fct<T>(getCredentails());
   }
+
+  @override
+  ValueNotifier<bool> authNotifier = ValueNotifier<bool>(false);
 }

@@ -5,7 +5,7 @@ import 'package:web3dart/web3dart.dart' as _i1;
 import 'dart:typed_data' as _i2;
 
 final _contractAbi = _i1.ContractAbi.fromJson(
-  '[{"anonymous":false,"inputs":[{"indexed":true,"internalType":"enum IPaymentManager.LimitedAction","name":"_action","type":"uint8"},{"indexed":true,"internalType":"address","name":"_sender","type":"address"},{"indexed":true,"internalType":"address","name":"_owner","type":"address"},{"indexed":false,"internalType":"uint256","name":"limitLeftOver","type":"uint256"},{"indexed":false,"internalType":"bool","name":"unlimited","type":"bool"}],"name":"LimitedActionEvent","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"enum IPaymentManager.PayableAction","name":"_action","type":"uint8"},{"indexed":true,"internalType":"address","name":"_sender","type":"address"},{"indexed":false,"internalType":"uint256","name":"fee","type":"uint256"},{"indexed":false,"internalType":"bool","name":"voucher","type":"bool"},{"indexed":false,"internalType":"bool","name":"unlimited","type":"bool"}],"name":"PayableActionEvent","type":"event"},{"inputs":[{"internalType":"address","name":"adr","type":"address"},{"internalType":"enum IPaymentManager.LimitedAction","name":"action","type":"uint8"},{"internalType":"uint256","name":"amount","type":"uint256"}],"name":"addLimit","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"adr","type":"address"},{"internalType":"enum IPaymentManager.PayableAction","name":"action","type":"uint8"},{"internalType":"uint256","name":"amount","type":"uint256"}],"name":"addVoucher","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"enum IPaymentManager.PayableAction","name":"action","type":"uint8"}],"name":"chargeFee","outputs":[],"stateMutability":"payable","type":"function"},{"inputs":[{"internalType":"enum IPaymentManager.LimitedAction","name":"action","type":"uint8"},{"internalType":"uint256","name":"amount","type":"uint256"}],"name":"decreaseLimit","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"account","type":"address"}],"name":"getBalance","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"account","type":"address"},{"internalType":"enum IPaymentManager.LimitedAction","name":"action","type":"uint8"}],"name":"getLimit","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"account","type":"address"},{"internalType":"enum IPaymentManager.PayableAction","name":"action","type":"uint8"}],"name":"getVoucherCount","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"receiver","type":"address"}],"name":"increaseCredits","outputs":[],"stateMutability":"payable","type":"function"},{"inputs":[{"internalType":"enum IPaymentManager.LimitedAction","name":"action","type":"uint8"},{"internalType":"uint256","name":"amount","type":"uint256"},{"internalType":"address","name":"bucket","type":"address"}],"name":"increaseLimit","outputs":[],"stateMutability":"payable","type":"function"},{"inputs":[{"internalType":"address","name":"account","type":"address"},{"internalType":"enum IPaymentManager.PayableAction","name":"action","type":"uint8"}],"name":"isFreeOfCharge","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"account","type":"address"},{"internalType":"enum IPaymentManager.LimitedAction","name":"action","type":"uint8"}],"name":"isUnlimited","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"manufacturerWithdraw","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"receiver","type":"address"},{"internalType":"uint256","name":"credit","type":"uint256"},{"internalType":"string","name":"random","type":"string"},{"internalType":"bytes","name":"signature","type":"bytes"}],"name":"redeemCredit","outputs":[],"stateMutability":"payable","type":"function"},{"inputs":[{"internalType":"address","name":"account","type":"address"},{"internalType":"enum IPaymentManager.PayableAction","name":"action","type":"uint8"},{"internalType":"bool","name":"enable","type":"bool"}],"name":"setAccountFreeOfCharge","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"account","type":"address"},{"internalType":"enum IPaymentManager.LimitedAction","name":"action","type":"uint8"},{"internalType":"bool","name":"enable","type":"bool"}],"name":"setAccountUnlimited","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"newBaseFee","type":"uint256"}],"name":"setDefaultFee","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"newBaseLimit","type":"uint256"}],"name":"setDefaultLimit","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"","type":"uint256"}],"name":"setLimitPrice","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"amount","type":"uint256"},{"internalType":"address","name":"receiver","type":"address"}],"name":"transferCredits","outputs":[],"stateMutability":"payable","type":"function"}]',
+  '[{"anonymous":false,"inputs":[{"indexed":true,"internalType":"enum IPaymentManager.LimitedAction","name":"_action","type":"uint8"},{"indexed":true,"internalType":"address","name":"_sender","type":"address"},{"indexed":true,"internalType":"address","name":"_owner","type":"address"},{"indexed":false,"internalType":"uint256","name":"limitLeftOver","type":"uint256"},{"indexed":false,"internalType":"bool","name":"unlimited","type":"bool"}],"name":"LimitedActionEvent","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"_account","type":"address"}],"name":"LimitsInitialized","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"enum IPaymentManager.PayableAction","name":"_action","type":"uint8"},{"indexed":true,"internalType":"address","name":"_sender","type":"address"},{"indexed":false,"internalType":"uint256","name":"fee","type":"uint256"},{"indexed":false,"internalType":"bool","name":"voucher","type":"bool"},{"indexed":false,"internalType":"bool","name":"unlimited","type":"bool"}],"name":"PayableActionEvent","type":"event"},{"inputs":[{"internalType":"address","name":"adr","type":"address"},{"internalType":"enum IPaymentManager.LimitedAction","name":"action","type":"uint8"},{"internalType":"uint256","name":"amount","type":"uint256"}],"name":"addLimit","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"adr","type":"address"},{"internalType":"enum IPaymentManager.PayableAction","name":"action","type":"uint8"},{"internalType":"uint256","name":"amount","type":"uint256"}],"name":"addVoucher","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"enum IPaymentManager.PayableAction","name":"action","type":"uint8"}],"name":"chargeFee","outputs":[],"stateMutability":"payable","type":"function"},{"inputs":[{"internalType":"enum IPaymentManager.LimitedAction","name":"action","type":"uint8"},{"internalType":"uint256","name":"amount","type":"uint256"}],"name":"decreaseLimit","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"account","type":"address"}],"name":"getBalance","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"account","type":"address"},{"internalType":"enum IPaymentManager.LimitedAction","name":"action","type":"uint8"}],"name":"getLimit","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"account","type":"address"}],"name":"getPaymentState","outputs":[{"internalType":"uint256","name":"","type":"uint256"},{"internalType":"bool","name":"","type":"bool"},{"internalType":"uint256","name":"","type":"uint256"},{"internalType":"uint256","name":"","type":"uint256"},{"internalType":"uint256","name":"","type":"uint256"},{"internalType":"uint256","name":"","type":"uint256"},{"internalType":"bool","name":"","type":"bool"},{"internalType":"bool","name":"","type":"bool"},{"internalType":"bool","name":"","type":"bool"},{"internalType":"uint256","name":"","type":"uint256"},{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"account","type":"address"},{"internalType":"enum IPaymentManager.PayableAction","name":"action","type":"uint8"}],"name":"getVoucherCount","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"receiver","type":"address"}],"name":"increaseCredits","outputs":[],"stateMutability":"payable","type":"function"},{"inputs":[{"internalType":"enum IPaymentManager.LimitedAction","name":"action","type":"uint8"},{"internalType":"uint256","name":"amount","type":"uint256"},{"internalType":"address","name":"bucket","type":"address"}],"name":"increaseLimit","outputs":[],"stateMutability":"payable","type":"function"},{"inputs":[{"internalType":"address","name":"account","type":"address"},{"internalType":"enum IPaymentManager.PayableAction","name":"action","type":"uint8"}],"name":"isFreeOfCharge","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"account","type":"address"},{"internalType":"enum IPaymentManager.LimitedAction","name":"action","type":"uint8"}],"name":"isUnlimited","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"manufacturerWithdraw","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"receiver","type":"address"},{"internalType":"uint256","name":"credit","type":"uint256"},{"internalType":"string","name":"random","type":"string"},{"internalType":"bytes","name":"signature","type":"bytes"}],"name":"redeemCredit","outputs":[],"stateMutability":"payable","type":"function"},{"inputs":[{"internalType":"address","name":"account","type":"address"},{"internalType":"enum IPaymentManager.PayableAction","name":"action","type":"uint8"},{"internalType":"bool","name":"enable","type":"bool"}],"name":"setAccountFreeOfCharge","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"account","type":"address"},{"internalType":"enum IPaymentManager.LimitedAction","name":"action","type":"uint8"},{"internalType":"bool","name":"enable","type":"bool"}],"name":"setAccountUnlimited","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"newBaseFee","type":"uint256"}],"name":"setDefaultFee","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"newBaseLimit","type":"uint256"}],"name":"setDefaultLimit","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"","type":"uint256"}],"name":"setLimitPrice","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"amount","type":"uint256"},{"internalType":"address","name":"receiver","type":"address"}],"name":"transferCredits","outputs":[],"stateMutability":"payable","type":"function"}]',
   'IPaymentManager',
 );
 
@@ -158,12 +158,30 @@ class IPaymentManager extends _i1.GeneratedContract {
   /// The optional [atBlock] parameter can be used to view historical data. When
   /// set, the function will be evaluated in the specified block. By default, the
   /// latest on-chain block will be used.
+  Future<GetPaymentState> getPaymentState(
+    _i1.EthereumAddress account, {
+    _i1.BlockNum? atBlock,
+  }) async {
+    final function = self.abi.functions[6];
+    assert(checkSignature(function, 'aa7c9ce1'));
+    final params = [account];
+    final response = await read(
+      function,
+      params,
+      atBlock,
+    );
+    return GetPaymentState(response);
+  }
+
+  /// The optional [atBlock] parameter can be used to view historical data. When
+  /// set, the function will be evaluated in the specified block. By default, the
+  /// latest on-chain block will be used.
   Future<BigInt> getVoucherCount(
     _i1.EthereumAddress account,
     BigInt action, {
     _i1.BlockNum? atBlock,
   }) async {
-    final function = self.abi.functions[6];
+    final function = self.abi.functions[7];
     assert(checkSignature(function, '5cc8fc0e'));
     final params = [
       account,
@@ -185,7 +203,7 @@ class IPaymentManager extends _i1.GeneratedContract {
     required _i1.Credentials credentials,
     _i1.Transaction? transaction,
   }) async {
-    final function = self.abi.functions[7];
+    final function = self.abi.functions[8];
     assert(checkSignature(function, '676755e4'));
     final params = [receiver];
     return write(
@@ -206,7 +224,7 @@ class IPaymentManager extends _i1.GeneratedContract {
     required _i1.Credentials credentials,
     _i1.Transaction? transaction,
   }) async {
-    final function = self.abi.functions[8];
+    final function = self.abi.functions[9];
     assert(checkSignature(function, '75732cf6'));
     final params = [
       action,
@@ -229,7 +247,7 @@ class IPaymentManager extends _i1.GeneratedContract {
     BigInt action, {
     _i1.BlockNum? atBlock,
   }) async {
-    final function = self.abi.functions[9];
+    final function = self.abi.functions[10];
     assert(checkSignature(function, '3644a17b'));
     final params = [
       account,
@@ -251,7 +269,7 @@ class IPaymentManager extends _i1.GeneratedContract {
     BigInt action, {
     _i1.BlockNum? atBlock,
   }) async {
-    final function = self.abi.functions[10];
+    final function = self.abi.functions[11];
     assert(checkSignature(function, '0ab35163'));
     final params = [
       account,
@@ -272,7 +290,7 @@ class IPaymentManager extends _i1.GeneratedContract {
     required _i1.Credentials credentials,
     _i1.Transaction? transaction,
   }) async {
-    final function = self.abi.functions[11];
+    final function = self.abi.functions[12];
     assert(checkSignature(function, '8d3c82e2'));
     final params = [];
     return write(
@@ -294,7 +312,7 @@ class IPaymentManager extends _i1.GeneratedContract {
     required _i1.Credentials credentials,
     _i1.Transaction? transaction,
   }) async {
-    final function = self.abi.functions[12];
+    final function = self.abi.functions[13];
     assert(checkSignature(function, 'f8fd0e41'));
     final params = [
       receiver,
@@ -320,7 +338,7 @@ class IPaymentManager extends _i1.GeneratedContract {
     required _i1.Credentials credentials,
     _i1.Transaction? transaction,
   }) async {
-    final function = self.abi.functions[13];
+    final function = self.abi.functions[14];
     assert(checkSignature(function, 'd1b465d4'));
     final params = [
       account,
@@ -345,7 +363,7 @@ class IPaymentManager extends _i1.GeneratedContract {
     required _i1.Credentials credentials,
     _i1.Transaction? transaction,
   }) async {
-    final function = self.abi.functions[14];
+    final function = self.abi.functions[15];
     assert(checkSignature(function, '9f611aa8'));
     final params = [
       account,
@@ -368,7 +386,7 @@ class IPaymentManager extends _i1.GeneratedContract {
     required _i1.Credentials credentials,
     _i1.Transaction? transaction,
   }) async {
-    final function = self.abi.functions[15];
+    final function = self.abi.functions[16];
     assert(checkSignature(function, 'c93a6c84'));
     final params = [newBaseFee];
     return write(
@@ -387,7 +405,7 @@ class IPaymentManager extends _i1.GeneratedContract {
     required _i1.Credentials credentials,
     _i1.Transaction? transaction,
   }) async {
-    final function = self.abi.functions[16];
+    final function = self.abi.functions[17];
     assert(checkSignature(function, '995284b1'));
     final params = [newBaseLimit];
     return write(
@@ -402,11 +420,11 @@ class IPaymentManager extends _i1.GeneratedContract {
   /// like the gas price, nonce and max gas. The `data` and `to` fields will be
   /// set by the contract.
   Future<String> setLimitPrice(
-    BigInt $param34, {
+    BigInt $param35, {
     required _i1.Credentials credentials,
     _i1.Transaction? transaction,
   }) async {
-    final function = self.abi.functions[17];
+    final function = self.abi.functions[18];
     assert(checkSignature(function, 'c4b137fd'));
     final params = [];
     return write(
@@ -426,7 +444,7 @@ class IPaymentManager extends _i1.GeneratedContract {
     required _i1.Credentials credentials,
     _i1.Transaction? transaction,
   }) async {
-    final function = self.abi.functions[18];
+    final function = self.abi.functions[19];
     assert(checkSignature(function, 'd93b2dd0'));
     final params = [
       amount,
@@ -457,7 +475,34 @@ class IPaymentManager extends _i1.GeneratedContract {
         result.topics!,
         result.data!,
       );
-      return LimitedActionEvent(decoded);
+      return LimitedActionEvent(
+        decoded,
+        result,
+      );
+    });
+  }
+
+  /// Returns a live stream of all LimitsInitialized events emitted by this contract.
+  Stream<LimitsInitialized> limitsInitializedEvents({
+    _i1.BlockNum? fromBlock,
+    _i1.BlockNum? toBlock,
+  }) {
+    final event = self.event('LimitsInitialized');
+    final filter = _i1.FilterOptions.events(
+      contract: self,
+      event: event,
+      fromBlock: fromBlock,
+      toBlock: toBlock,
+    );
+    return client.events(filter).map((_i1.FilterEvent result) {
+      final decoded = event.decodeResults(
+        result.topics!,
+        result.data!,
+      );
+      return LimitsInitialized(
+        decoded,
+        result,
+      );
     });
   }
 
@@ -478,14 +523,56 @@ class IPaymentManager extends _i1.GeneratedContract {
         result.topics!,
         result.data!,
       );
-      return PayableActionEvent(decoded);
+      return PayableActionEvent(
+        decoded,
+        result,
+      );
     });
   }
 }
 
+class GetPaymentState {
+  GetPaymentState(List<dynamic> response)
+      : var1 = (response[0] as BigInt),
+        var2 = (response[1] as bool),
+        var3 = (response[2] as BigInt),
+        var4 = (response[3] as BigInt),
+        var5 = (response[4] as BigInt),
+        var6 = (response[5] as BigInt),
+        var7 = (response[6] as bool),
+        var8 = (response[7] as bool),
+        var9 = (response[8] as bool),
+        var10 = (response[9] as BigInt),
+        var11 = (response[10] as BigInt);
+
+  final BigInt var1;
+
+  final bool var2;
+
+  final BigInt var3;
+
+  final BigInt var4;
+
+  final BigInt var5;
+
+  final BigInt var6;
+
+  final bool var7;
+
+  final bool var8;
+
+  final bool var9;
+
+  final BigInt var10;
+
+  final BigInt var11;
+}
+
 class LimitedActionEvent {
-  LimitedActionEvent(List<dynamic> response)
-      : action = (response[0] as BigInt),
+  LimitedActionEvent(
+    List<dynamic> response,
+    this.event,
+  )   : action = (response[0] as BigInt),
         sender = (response[1] as _i1.EthereumAddress),
         owner = (response[2] as _i1.EthereumAddress),
         limitLeftOver = (response[3] as BigInt),
@@ -500,11 +587,26 @@ class LimitedActionEvent {
   final BigInt limitLeftOver;
 
   final bool unlimited;
+
+  final _i1.FilterEvent event;
+}
+
+class LimitsInitialized {
+  LimitsInitialized(
+    List<dynamic> response,
+    this.event,
+  ) : account = (response[0] as _i1.EthereumAddress);
+
+  final _i1.EthereumAddress account;
+
+  final _i1.FilterEvent event;
 }
 
 class PayableActionEvent {
-  PayableActionEvent(List<dynamic> response)
-      : action = (response[0] as BigInt),
+  PayableActionEvent(
+    List<dynamic> response,
+    this.event,
+  )   : action = (response[0] as BigInt),
         sender = (response[1] as _i1.EthereumAddress),
         fee = (response[2] as BigInt),
         voucher = (response[3] as bool),
@@ -519,4 +621,6 @@ class PayableActionEvent {
   final bool voucher;
 
   final bool unlimited;
+
+  final _i1.FilterEvent event;
 }

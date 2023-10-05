@@ -7,9 +7,11 @@ abstract class MultiSpaceState extends Equatable {
   List<Object> get props => [];
 }
 
-class MultiSpacesInitial extends MultiSpaceState {}
+class MultiSpacesLoading extends MultiSpaceState {}
 
 class NoSpaceExisting extends MultiSpaceState {}
+
+class NoInternetConnectionAvailable extends MultiSpaceState {}
 
 class SpaceCreationInProgress extends MultiSpaceState {
   final String transactionHash;

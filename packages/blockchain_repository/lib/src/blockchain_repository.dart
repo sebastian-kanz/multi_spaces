@@ -6,20 +6,9 @@ import 'package:web3dart/web3dart.dart';
 enum ConnectionStatus { unknown, initialized, connected, disconnected }
 
 class BlockchainRepository {
-  BlockchainProvider? _provider;
-
   final _controller = StreamController<ConnectionStatus>();
 
-  BlockchainRepository(List<BlockchainProvider> providers) {
-    for (var provider in providers) {
-      if (provider.isAuthenticated()) {
-        _provider = provider;
-      }
-    }
-  }
-
-  void init(BlockchainProvider provider) {
-    _provider = provider;
+  void init() {
     _controller.add(ConnectionStatus.initialized);
   }
 
@@ -29,14 +18,18 @@ class BlockchainRepository {
 
   @override
   Credentials getCredentails() {
-    if (_provider != null) {
-      return _provider!.getCredentails();
+    if (BlockchainProviderManager().authenticatedProvider != null) {
+      return BlockchainProviderManager()
+          .authenticatedProvider!
+          .getCredentails();
     }
     throw Exception("Missing provider!");
   }
 
   Future<T> callContract2<T>({required Fct fct}) {
-    return _provider!.callContract2<T>(fct: fct);
+    return BlockchainProviderManager()
+        .authenticatedProvider!
+        .callContract2<T>(fct: fct);
   }
 
   Future<String> callContract(
@@ -44,7 +37,7 @@ class BlockchainRepository {
       required ContractFunction function,
       required List<dynamic> params,
       required int value}) {
-    return _provider!.callContract(
+    return BlockchainProviderManager().authenticatedProvider!.callContract(
         contract: contract, function: function, params: params, value: value);
   }
 }

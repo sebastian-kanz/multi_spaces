@@ -3,6 +3,47 @@
     "inputs": [
       {
         "internalType": "address",
+        "name": "requestor",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "acceptor",
+        "type": "address"
+      }
+    ],
+    "name": "acceptParticipation",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "string",
+        "name": "newParticipantName",
+        "type": "string"
+      },
+      {
+        "internalType": "address",
+        "name": "newParticipantAdr",
+        "type": "address"
+      },
+      {
+        "internalType": "bytes",
+        "name": "newParticipantPubKey",
+        "type": "bytes"
+      }
+    ],
+    "name": "addParticipation",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
         "name": "account",
         "type": "address"
       },
@@ -45,6 +86,24 @@
         "type": "address"
       }
     ],
+    "name": "grantRole",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "role",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "address",
+        "name": "account",
+        "type": "address"
+      }
+    ],
     "name": "hasRole",
     "outputs": [
       {
@@ -72,50 +131,55 @@
   {
     "inputs": [
       {
-        "internalType": "string",
-        "name": "name",
-        "type": "string"
-      },
-      {
-        "internalType": "address",
-        "name": "inviter",
-        "type": "address"
-      },
-      {
-        "internalType": "address",
-        "name": "invitee",
-        "type": "address"
-      },
-      {
-        "internalType": "bytes",
-        "name": "signature",
-        "type": "bytes"
-      },
-      {
-        "internalType": "string",
-        "name": "randomCode",
-        "type": "string"
-      },
-      {
-        "internalType": "bytes",
-        "name": "pubKey",
-        "type": "bytes"
-      }
-    ],
-    "name": "redeemParticipationCode",
-    "outputs": [],
-    "stateMutability": "payable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
         "internalType": "address",
         "name": "participant",
         "type": "address"
       }
     ],
     "name": "removeParticipation",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "string",
+        "name": "name",
+        "type": "string"
+      },
+      {
+        "internalType": "address",
+        "name": "requestor",
+        "type": "address"
+      },
+      {
+        "internalType": "bytes",
+        "name": "pubKey",
+        "type": "bytes"
+      },
+      {
+        "internalType": "string",
+        "name": "deviceName",
+        "type": "string"
+      },
+      {
+        "internalType": "address",
+        "name": "device",
+        "type": "address"
+      },
+      {
+        "internalType": "bytes",
+        "name": "devicePubKey",
+        "type": "bytes"
+      },
+      {
+        "internalType": "bytes",
+        "name": "signature",
+        "type": "bytes"
+      }
+    ],
+    "name": "requestParticipation",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"

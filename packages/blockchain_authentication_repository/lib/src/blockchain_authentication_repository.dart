@@ -14,31 +14,23 @@ enum AuthenticationStatus {
 }
 
 class BlockchainAuthenticationRepository {
-  BlockchainProvider? _provider;
-
-  BlockchainAuthenticationRepository(List<BlockchainProvider> providers) {
-    for (var provider in providers) {
-      if (provider.isAuthenticated()) {
-        _provider = provider;
-      }
-    }
-  }
-
   final _controller = StreamController<AuthenticationStatus>();
+  StreamSubscription<bool>? _listenAuthentication;
 
   bool _isInitialized = false;
 
   bool get isInitialized => _isInitialized;
 
-  void init(BlockchainProvider provider) {
-    _provider = provider;
+  void init() {
     _controller.add(AuthenticationStatus.initialized);
     _isInitialized = true;
   }
 
   Stream<AuthenticationStatus> get status async* {
     await Future<void>.delayed(const Duration(seconds: 1));
-    final isAuthenticated = _provider?.isAuthenticated() ?? false;
+    final isAuthenticated =
+        BlockchainProviderManager().authenticatedProvider?.isAuthenticated() ??
+            false;
     if (_isInitialized) {
       if (isAuthenticated) {
         yield AuthenticationStatus.authenticated;
@@ -52,14 +44,28 @@ class BlockchainAuthenticationRepository {
   }
 
   Future<void> logIn(Map<String, dynamic> params) async {
-    await _provider?.login({...params, 'onDisconnect': logOut});
-    _controller.add(AuthenticationStatus.authenticated);
+    await BlockchainProviderManager().selectedProvider.login({
+      ...params,
+      BlockchainProvider.onDisconnect: logOut,
+    });
+    _listenAuthentication ??= BlockchainProviderManager()
+        .listenAuthentication()
+        .listen((authenticated) {
+      if (!authenticated) {
+        _controller.add(AuthenticationStatus.unauthenticated);
+      } else {
+        _controller.add(AuthenticationStatus.authenticated);
+      }
+    });
   }
 
   Future<void> logOut() async {
-    await _provider?.logout();
+    await BlockchainProviderManager().authenticatedProvider?.logout();
     _controller.add(AuthenticationStatus.unauthenticated);
   }
 
-  void dispose() => _controller.close();
+  void dispose() {
+    _controller.close();
+    _listenAuthentication?.cancel();
+  }
 }

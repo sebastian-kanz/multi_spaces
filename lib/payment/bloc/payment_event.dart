@@ -7,12 +7,13 @@ abstract class PaymentEvent extends Equatable {
   List<Object> get props => [];
 }
 
-class InitPaymentEvent extends PaymentEvent {
-  final EthereumAddress account;
-  const InitPaymentEvent({required this.account});
+class InitPaymentsEvent extends PaymentEvent {
+  final List<EthereumAddress> accounts;
+  final int selected;
+  const InitPaymentsEvent({required this.accounts, required this.selected});
 
   @override
-  List<Object> get props => [account];
+  List<Object> get props => [accounts, selected];
 }
 
 class LoadPaymentEvent extends PaymentEvent {

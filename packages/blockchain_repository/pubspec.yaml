@@ -10,7 +10,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  walletconnect_dart: ^0.0.11
+  # walletconnect_dart: ^0.0.11
   web3dart: ^2.3.3
   blockchain_provider: 
     path: ../blockchain_provider

@@ -40,19 +40,24 @@ class NavDrawer extends StatelessWidget {
                     } else {
                       return BlocBuilder<PaymentBloc, PaymentState>(
                         builder: (context, state) {
+                          Widget freeBuckets = const Text("loading...");
                           if (state.runtimeType == PaymentInitialized) {
-                            Widget limit;
-                            if ((state as PaymentInitialized).isUnlimited) {
-                              limit = const Text("Free Buckets left: ∞");
+                            if ((state as PaymentInitialized)
+                                .addBucketIsFreeOfCharge) {
+                              freeBuckets = const Text("∞");
                             } else {
-                              limit = Text(
-                                "Free Buckets left: ${state.limit}",
+                              print(state);
+                              freeBuckets = Text(
+                                "${state.addBucketVouchers + (state.balance ~/ state.defaultPayment)}",
                               );
                             }
-                            return limit;
                           }
-                          return const Center(
-                            child: CircularProgressIndicator(),
+                          return Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text("Free Buckets left:"),
+                              freeBuckets
+                            ],
                           );
                         },
                       );

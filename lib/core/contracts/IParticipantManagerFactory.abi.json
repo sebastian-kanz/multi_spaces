@@ -23,6 +23,11 @@
       },
       {
         "internalType": "address",
+        "name": "bucketFactory",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
         "name": "space",
         "type": "address"
       }

@@ -2,6 +2,7 @@ import 'package:logger/logger.dart';
 
 Logger getLogger() {
   return Logger(
+    level: Level.debug,
     printer: PrettyPrinter(
       lineLength: 90,
       colors: false,

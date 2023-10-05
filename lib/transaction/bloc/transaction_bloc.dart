@@ -2,8 +2,7 @@ import 'dart:async';
 
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:http/http.dart';
-import 'package:multi_spaces/core/env/Env.dart';
+import 'package:multi_spaces/core/networking/MultiSpaceClient.dart';
 import 'package:multi_spaces/core/utils/logger.util.dart';
 import 'package:web3dart/crypto.dart';
 import 'package:web3dart/web3dart.dart';
@@ -14,35 +13,51 @@ part 'transaction_state.dart';
 class TransactionBloc extends Bloc<TransactionEvent, TransactionState> {
   final _logger = getLogger();
   final Web3Client _client;
-  late final StreamSubscription _newBlocksSubscription;
+  StreamSubscription? _newBlocksSubscription;
 
   TransactionBloc()
-      : _client = Web3Client(Env.eth_url, Client()),
+      : _client = MultiSpaceClient().client,
         super(TransactionsListening(transactionHashes: List<String>.empty())) {
     on<TransactionSubmittedEvent>(_onTransactionSubmittedEvent);
-    on<TransactionCompletedEvent>(_onTransactionCompletedEvent);
-    on<TransactionErroredEvent>(_onTransactionErroredEvent);
-    _newBlocksSubscription = _client.addedBlocks().listen(
+    on<TransactionsCompletedEvent>(_onTransactionCompletedEvent);
+    on<TransactionsErroredEvent>(_onTransactionErroredEvent);
+  }
+
+  Future<void> _setupNewBlockListener() async {
+    final blockStream = Stream<void>.periodic(const Duration(seconds: 5));
+    _newBlocksSubscription ??= blockStream.listen(
       (newBlock) async {
         final hashes = List<String>.from(
           (state as TransactionsListening).transactionHashes,
         );
-        for (var hash in hashes) {
+        final List<String> successfulTx = [];
+        final List<String> failedTx = [];
+        for (var hash in hashes.where((elem) => elem != "")) {
           final receipt = await _client.getTransactionReceipt(hash);
           if (receipt != null) {
-            if (bytesToHex(receipt.blockHash, include0x: true) == newBlock) {
-              if (receipt.status == true) {
-                add(TransactionCompletedEvent(transactionHash: hash));
-              } else {
-                _logger.d(receipt);
-                add(TransactionErroredEvent(transactionHash: hash));
-              }
+            if (receipt.status == true) {
+              successfulTx.add(hash);
+            } else {
+              failedTx.add(hash);
             }
+            break;
           }
+        }
+        if (successfulTx.isNotEmpty) {
+          add(TransactionsCompletedEvent(transactionHashes: successfulTx));
+        }
+        if (failedTx.isNotEmpty) {
+          add(TransactionsErroredEvent(transactionHashes: failedTx));
         }
       },
       onError: (error) => _logger.e(error),
     );
+  }
+
+  @override
+  Future<void> close() {
+    _newBlocksSubscription?.cancel();
+    return super.close();
   }
 
   void _onTransactionSubmittedEvent(
@@ -50,10 +65,15 @@ class TransactionBloc extends Bloc<TransactionEvent, TransactionState> {
     Emitter<TransactionState> emit,
   ) async {
     try {
+      _logger.d("Transaction submitted: ${event.transactionHash}");
+      _setupNewBlockListener();
+      emit(TransactionsChanged(
+        transactionHashes: [...state.transactionHashes, event.transactionHash],
+      ));
       emit(
         TransactionsListening(
           transactionHashes: [
-            ...(state as TransactionsListening).transactionHashes,
+            ...state.transactionHashes,
             event.transactionHash
           ],
         ),
@@ -64,34 +84,65 @@ class TransactionBloc extends Bloc<TransactionEvent, TransactionState> {
   }
 
   void _onTransactionCompletedEvent(
-    TransactionCompletedEvent event,
+    TransactionsCompletedEvent event,
     Emitter<TransactionState> emit,
   ) async {
     try {
-      final hashes = (state as TransactionsListening).transactionHashes;
-      hashes.remove(event.transactionHash);
+      final hashes = state.transactionHashes;
+      final failedHashes = state.failedTransactionHashes;
+      for (var hash in event.transactionHashes) {
+        hashes.remove(hash);
+      }
+      _logger.d(
+        "Transactions completed: ${event.transactionHashes.toString()}. ${hashes.length} open tx left.",
+      );
+
+      emit(TransactionsChanged(
+        transactionHashes: hashes,
+        failedTransactionHashes: failedHashes,
+      ));
       emit(
         TransactionsListening(
           transactionHashes: hashes,
         ),
       );
+      if (hashes.isEmpty) {
+        await _newBlocksSubscription?.cancel();
+        _newBlocksSubscription = null;
+      }
     } catch (e) {
       _logger.e(e);
     }
   }
 
   void _onTransactionErroredEvent(
-    TransactionErroredEvent event,
+    TransactionsErroredEvent event,
     Emitter<TransactionState> emit,
   ) async {
     try {
-      final hashes = (state as TransactionsListening).transactionHashes;
-      hashes.remove(event.transactionHash);
+      final hashes = state.transactionHashes;
+      final failedHashes = state.failedTransactionHashes;
+      for (var hash in event.transactionHashes) {
+        hashes.remove(hash);
+      }
+
+      _logger.d(
+        "Transactions errored: ${event.transactionHashes.toString()}. ${hashes.length} open tx left.",
+      );
+
+      emit(TransactionsChanged(
+        transactionHashes: hashes,
+        failedTransactionHashes: failedHashes,
+      ));
       emit(
         TransactionsListening(
-          transactionHashes: hashes,
-        ),
+            transactionHashes: hashes,
+            failedTransactionHashes: [...event.transactionHashes]),
       );
+      if (hashes.isEmpty) {
+        await _newBlocksSubscription?.cancel();
+        _newBlocksSubscription = null;
+      }
     } catch (e) {
       _logger.e(e);
     }

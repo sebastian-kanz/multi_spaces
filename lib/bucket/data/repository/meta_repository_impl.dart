@@ -22,17 +22,22 @@ class MetaRepositoryImpl
   }
 
   @override
-  Future<MetaEntity> getMeta(String metaHash,
-      {int? creationBlockNumber, bool sync = false}) async {
+  Future<MetaEntity> getMeta(
+    String metaHash, {
+    int? creationBlockNumber,
+    bool sync = false,
+  }) async {
     var model = box.get(metaHash);
     if (model == null) {
       if (!sync) {
-        throw RepositoryFailure(
-          "No local copy of meta $metaHash found and sync is disabled.",
-        );
+        return MetaEntity.unsynced(metaHash);
       }
-      final ipfsObject = await _ipfsVaultRepository.get(metaHash,
-          creationBlockNumber: creationBlockNumber);
+
+      print("AES Getting Meta");
+      final ipfsObject = await _ipfsVaultRepository.get(
+        metaHash,
+        creationBlockNumber: creationBlockNumber,
+      );
       model = MetaModel.fromHex(bytesToHex(ipfsObject));
       await box.put(metaHash, model);
       return MetaMapper.fromModel(model);
@@ -49,6 +54,7 @@ class MetaRepositoryImpl
       createMetaDto.type,
       createMetaDto.format,
       createMetaDto.created,
+      createMetaDto.size,
       createMetaDto.quality,
       createMetaDto.metaRef,
       createMetaDto.tags,
@@ -57,7 +63,7 @@ class MetaRepositoryImpl
       createMetaDto.compression,
       createMetaDto.deeplink,
     );
-    final metaRaw = Uint8List.fromList(model.toJson().toString().codeUnits);
+    final metaRaw = model.toBytes();
     final metaHash = await _ipfsVaultRepository.store(
       metaRaw,
       creationBlockNumber: creationBlockNumber,

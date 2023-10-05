@@ -7,16 +7,16 @@ abstract class MultiSpacesEvent extends Equatable {
   List<Object> get props => [];
 }
 
-class MultiSpacesInitialized extends MultiSpacesEvent {
-  const MultiSpacesInitialized();
-}
-
 class MultiSpacesStarted extends MultiSpacesEvent {
   const MultiSpacesStarted();
 }
 
 class CreateSpacePressed extends MultiSpacesEvent {
   const CreateSpacePressed();
+}
+
+class InternetConnectionLost extends MultiSpacesEvent {
+  const InternetConnectionLost();
 }
 
 class SpaceCreated extends MultiSpacesEvent {

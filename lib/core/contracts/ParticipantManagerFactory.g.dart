@@ -5,7 +5,7 @@ import 'package:web3dart/web3dart.dart' as _i1;
 import 'dart:typed_data' as _i2;
 
 final _contractAbi = _i1.ContractAbi.fromJson(
-  '[{"inputs":[{"internalType":"address","name":"participantManager","type":"address"}],"stateMutability":"nonpayable","type":"constructor"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"previousOwner","type":"address"},{"indexed":true,"internalType":"address","name":"newOwner","type":"address"}],"name":"OwnershipTransferred","type":"event"},{"inputs":[{"internalType":"address","name":"pManager","type":"address"},{"internalType":"string","name":"name","type":"string"},{"internalType":"address","name":"adr","type":"address"},{"internalType":"bytes","name":"publicKey","type":"bytes"},{"internalType":"address","name":"space","type":"address"}],"name":"createParticipantManager","outputs":[{"internalType":"contract IParticipantManager","name":"","type":"address"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"owner","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"space","type":"address"}],"name":"registerBucketFactory","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"renounceOwnership","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"impl","type":"address"}],"name":"setParticipantManagerImplementation","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"newOwner","type":"address"}],"name":"transferOwnership","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"space","type":"address"}],"name":"unregisterBucketFactory","outputs":[],"stateMutability":"nonpayable","type":"function"}]',
+  '[{"inputs":[{"internalType":"address","name":"participantManager","type":"address"}],"stateMutability":"nonpayable","type":"constructor"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"previousOwner","type":"address"},{"indexed":true,"internalType":"address","name":"newOwner","type":"address"}],"name":"OwnershipTransferred","type":"event"},{"inputs":[{"internalType":"address","name":"pManager","type":"address"},{"internalType":"string","name":"name","type":"string"},{"internalType":"address","name":"adr","type":"address"},{"internalType":"bytes","name":"publicKey","type":"bytes"},{"internalType":"address","name":"bucketFactory","type":"address"},{"internalType":"address","name":"space","type":"address"}],"name":"createParticipantManager","outputs":[{"internalType":"contract IParticipantManager","name":"","type":"address"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"owner","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"space","type":"address"}],"name":"registerBucketFactory","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"renounceOwnership","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"impl","type":"address"}],"name":"setParticipantManagerImplementation","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"newOwner","type":"address"}],"name":"transferOwnership","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"space","type":"address"}],"name":"unregisterBucketFactory","outputs":[],"stateMutability":"nonpayable","type":"function"}]',
   'ParticipantManagerFactory',
 );
 
@@ -31,17 +31,19 @@ class ParticipantManagerFactory extends _i1.GeneratedContract {
     String name,
     _i1.EthereumAddress adr,
     _i2.Uint8List publicKey,
+    _i1.EthereumAddress bucketFactory,
     _i1.EthereumAddress space, {
     required _i1.Credentials credentials,
     _i1.Transaction? transaction,
   }) async {
     final function = self.abi.functions[1];
-    assert(checkSignature(function, '371bf055'));
+    assert(checkSignature(function, '950412ab'));
     final params = [
       pManager,
       name,
       adr,
       publicKey,
+      bucketFactory,
       space,
     ];
     return write(
@@ -178,17 +180,24 @@ class ParticipantManagerFactory extends _i1.GeneratedContract {
         result.topics!,
         result.data!,
       );
-      return OwnershipTransferred(decoded);
+      return OwnershipTransferred(
+        decoded,
+        result,
+      );
     });
   }
 }
 
 class OwnershipTransferred {
-  OwnershipTransferred(List<dynamic> response)
-      : previousOwner = (response[0] as _i1.EthereumAddress),
+  OwnershipTransferred(
+    List<dynamic> response,
+    this.event,
+  )   : previousOwner = (response[0] as _i1.EthereumAddress),
         newOwner = (response[1] as _i1.EthereumAddress);
 
   final _i1.EthereumAddress previousOwner;
 
   final _i1.EthereumAddress newOwner;
+
+  final _i1.FilterEvent event;
 }

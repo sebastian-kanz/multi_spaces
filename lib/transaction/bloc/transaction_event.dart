@@ -15,18 +15,18 @@ class TransactionSubmittedEvent extends TransactionEvent {
   List<Object> get props => [transactionHash];
 }
 
-class TransactionCompletedEvent extends TransactionEvent {
-  final String transactionHash;
-  const TransactionCompletedEvent({required this.transactionHash});
+class TransactionsCompletedEvent extends TransactionEvent {
+  final List<String> transactionHashes;
+  const TransactionsCompletedEvent({required this.transactionHashes});
 
   @override
-  List<Object> get props => [transactionHash];
+  List<Object> get props => [transactionHashes];
 }
 
-class TransactionErroredEvent extends TransactionEvent {
-  final String transactionHash;
-  const TransactionErroredEvent({required this.transactionHash});
+class TransactionsErroredEvent extends TransactionEvent {
+  final List<String> transactionHashes;
+  const TransactionsErroredEvent({required this.transactionHashes});
 
   @override
-  List<Object> get props => [transactionHash];
+  List<Object> get props => [transactionHashes];
 }

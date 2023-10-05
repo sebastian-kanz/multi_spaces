@@ -443,7 +443,10 @@ class Element extends _i1.GeneratedContract {
         result.topics!,
         result.data!,
       );
-      return Initialized(decoded);
+      return Initialized(
+        decoded,
+        result,
+      );
     });
   }
 
@@ -464,20 +467,30 @@ class Element extends _i1.GeneratedContract {
         result.topics!,
         result.data!,
       );
-      return Request(decoded);
+      return Request(
+        decoded,
+        result,
+      );
     });
   }
 }
 
 class Initialized {
-  Initialized(List<dynamic> response) : version = (response[0] as BigInt);
+  Initialized(
+    List<dynamic> response,
+    this.event,
+  ) : version = (response[0] as BigInt);
 
   final BigInt version;
+
+  final _i1.FilterEvent event;
 }
 
 class Request {
-  Request(List<dynamic> response)
-      : elem = (response[0] as _i1.EthereumAddress),
+  Request(
+    List<dynamic> response,
+    this.event,
+  )   : elem = (response[0] as _i1.EthereumAddress),
         requestor = (response[1] as _i1.EthereumAddress),
         time = (response[2] as BigInt);
 
@@ -486,4 +499,6 @@ class Request {
   final _i1.EthereumAddress requestor;
 
   final BigInt time;
+
+  final _i1.FilterEvent event;
 }

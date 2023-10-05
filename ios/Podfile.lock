@@ -1,6 +1,13 @@
 PODS:
-  - cryptography_flutter (0.1.0):
+  - app_links (0.0.1):
     - Flutter
+  - BigInt (5.0.0)
+  - connectivity_plus (0.0.1):
+    - Flutter
+    - ReachabilitySwift
+  - cryptography_flutter (0.2.0):
+    - Flutter
+  - CryptoSwift (1.5.1)
   - DKImagePickerController/Core (4.3.4):
     - DKImagePickerController/ImageDataManager
     - DKImagePickerController/Resource
@@ -38,39 +45,69 @@ PODS:
   - Flutter (1.0.0)
   - flutter_secure_storage (6.0.0):
     - Flutter
+  - GenericJSON (2.0.2)
+  - KeychainSwift (20.0.0)
   - path_provider_foundation (0.0.1):
     - Flutter
     - FlutterMacOS
-  - SDWebImage (5.15.5):
-    - SDWebImage/Core (= 5.15.5)
-  - SDWebImage/Core (5.15.5)
+  - ReachabilitySwift (5.0.0)
+  - rive_common (0.0.1):
+    - Flutter
+  - SDWebImage (5.18.2):
+    - SDWebImage/Core (= 5.18.2)
+  - SDWebImage/Core (5.18.2)
+  - secp256k1.swift (0.1.4)
+  - shared_preferences_foundation (0.0.1):
+    - Flutter
+    - FlutterMacOS
   - SwiftyGif (5.4.4)
   - url_launcher_ios (0.0.1):
     - Flutter
-  - Web3Auth (3.5.1)
+  - web3.swift (0.9.3):
+    - BigInt (~> 5.0.0)
+    - GenericJSON (~> 2.0)
+    - secp256k1.swift (~> 0.1)
+  - Web3Auth (5.0.0):
+    - CryptoSwift (~> 1.5.1)
+    - KeychainSwift (~> 20.0.0)
+    - web3.swift (~> 0.9.3)
   - web3auth_flutter (0.1.1):
     - Flutter
-    - Web3Auth (~> 3.5.0)
+    - Web3Auth (~> 5.0.0)
 
 DEPENDENCIES:
+  - app_links (from `.symlinks/plugins/app_links/ios`)
+  - connectivity_plus (from `.symlinks/plugins/connectivity_plus/ios`)
   - cryptography_flutter (from `.symlinks/plugins/cryptography_flutter/ios`)
   - file_picker (from `.symlinks/plugins/file_picker/ios`)
   - Flutter (from `Flutter`)
   - flutter_secure_storage (from `.symlinks/plugins/flutter_secure_storage/ios`)
-  - path_provider_foundation (from `.symlinks/plugins/path_provider_foundation/ios`)
+  - path_provider_foundation (from `.symlinks/plugins/path_provider_foundation/darwin`)
+  - rive_common (from `.symlinks/plugins/rive_common/ios`)
+  - shared_preferences_foundation (from `.symlinks/plugins/shared_preferences_foundation/darwin`)
   - url_launcher_ios (from `.symlinks/plugins/url_launcher_ios/ios`)
-  - Web3Auth (= 3.5.1)
   - web3auth_flutter (from `.symlinks/plugins/web3auth_flutter/ios`)
 
 SPEC REPOS:
   trunk:
+    - BigInt
+    - CryptoSwift
     - DKImagePickerController
     - DKPhotoGallery
+    - GenericJSON
+    - KeychainSwift
+    - ReachabilitySwift
     - SDWebImage
+    - secp256k1.swift
     - SwiftyGif
+    - web3.swift
     - Web3Auth
 
 EXTERNAL SOURCES:
+  app_links:
+    :path: ".symlinks/plugins/app_links/ios"
+  connectivity_plus:
+    :path: ".symlinks/plugins/connectivity_plus/ios"
   cryptography_flutter:
     :path: ".symlinks/plugins/cryptography_flutter/ios"
   file_picker:
@@ -80,26 +117,41 @@ EXTERNAL SOURCES:
   flutter_secure_storage:
     :path: ".symlinks/plugins/flutter_secure_storage/ios"
   path_provider_foundation:
-    :path: ".symlinks/plugins/path_provider_foundation/ios"
+    :path: ".symlinks/plugins/path_provider_foundation/darwin"
+  rive_common:
+    :path: ".symlinks/plugins/rive_common/ios"
+  shared_preferences_foundation:
+    :path: ".symlinks/plugins/shared_preferences_foundation/darwin"
   url_launcher_ios:
     :path: ".symlinks/plugins/url_launcher_ios/ios"
   web3auth_flutter:
     :path: ".symlinks/plugins/web3auth_flutter/ios"
 
 SPEC CHECKSUMS:
-  cryptography_flutter: a2c541ba25ff28549f989f856dde126c961defcd
+  app_links: 5ef33d0d295a89d9d16bb81b0e3b0d5f70d6c875
+  BigInt: 74b4d88367b0e819d9f77393549226d36faeb0d8
+  connectivity_plus: 413a8857dd5d9f1c399a39130850d02fe0feaf7e
+  cryptography_flutter: 381bdacc984abcfbe3ca45ef7c76566ff061614c
+  CryptoSwift: c4f2debceb38bf44c80659afe009f71e23e4a082
   DKImagePickerController: b512c28220a2b8ac7419f21c491fc8534b7601ac
   DKPhotoGallery: fdfad5125a9fdda9cc57df834d49df790dbb4179
   file_picker: ce3938a0df3cc1ef404671531facef740d03f920
   Flutter: f04841e97a9d0b0a8025694d0796dd46242b2854
   flutter_secure_storage: 23fc622d89d073675f2eaa109381aefbcf5a49be
-  path_provider_foundation: c68054786f1b4f3343858c1e1d0caaded73f0be9
-  SDWebImage: fd7e1a22f00303e058058278639bf6196ee431fe
+  GenericJSON: 79a840eeb77030962e8cf02a62d36bd413b67626
+  KeychainSwift: 0ce6a4d13f7228054d1a71bb1b500448fb2ab837
+  path_provider_foundation: 29f094ae23ebbca9d3d0cec13889cd9060c0e943
+  ReachabilitySwift: 985039c6f7b23a1da463388634119492ff86c825
+  rive_common: 8a159d68033a8b073e5853acc50f03aa486a2888
+  SDWebImage: c0de394d7cf7f9838aed1fd6bb6037654a4572e4
+  secp256k1.swift: a7e7a214f6db6ce5db32cc6b2b45e5c4dd633634
+  shared_preferences_foundation: 5b919d13b803cadd15ed2dc053125c68730e5126
   SwiftyGif: 93a1cc87bf3a51916001cf8f3d63835fb64c819f
-  url_launcher_ios: 839c58cdb4279282219f5e248c3321761ff3c4de
-  Web3Auth: 28e08d968ef08236b4c94000845ef40c2413b757
-  web3auth_flutter: d79313b6942fd627cd279e9c1d13232a4345f7f7
+  url_launcher_ios: 08a3dfac5fb39e8759aeb0abbd5d9480f30fc8b4
+  web3.swift: c6c3bf1f853743f8a7a58d263e5f7e46545e22c7
+  Web3Auth: 3ef09358f409cf6b2b57f3bcc074281ac73681a1
+  web3auth_flutter: c40401ed4bb3aff723349a382ddae9809eeee959
 
-PODFILE CHECKSUM: 4abb714c2ae1db55a8a6bdb9206c94189f1da36b
+PODFILE CHECKSUM: 2a9400258496d929bd9500ce9dec8da6290742ce
 
 COCOAPODS: 1.11.2

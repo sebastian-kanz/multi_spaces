@@ -10,21 +10,26 @@ import 'package:multi_spaces/core/error/failures.dart';
 class DataRepositoryImpl implements DataRepository {
   final IPFSVaultRepository _ipfsVaultRepository;
   final FileStorageRepository _fileStorageRepository;
-  DataRepositoryImpl(IPFSVaultRepository ipfsVaultRepository,
-      FileStorageRepository fileStorageRepository)
-      : _ipfsVaultRepository = ipfsVaultRepository,
+  DataRepositoryImpl(
+    IPFSVaultRepository ipfsVaultRepository,
+    FileStorageRepository fileStorageRepository,
+  )   : _ipfsVaultRepository = ipfsVaultRepository,
         _fileStorageRepository = fileStorageRepository;
 
   @override
-  Future<DataEntity> getData(String dataHash,
-      {int? creationBlockNumber, bool sync = false}) async {
+  Future<DataEntity> getData(
+    String dataHash, {
+    int? creationBlockNumber,
+    bool sync = false,
+  }) async {
+    if (dataHash.isEmpty) {
+      return DataEntity(dataHash, File(""));
+    }
     final exists = await _fileStorageRepository.exists(dataHash);
     File file;
     if (!exists) {
       if (!sync) {
-        throw RepositoryFailure(
-          "No local copy of data $dataHash found and sync is disabled.",
-        );
+        return DataEntity.unsynced(dataHash);
       }
       final ipfsObject = await _ipfsVaultRepository.get(dataHash,
           creationBlockNumber: creationBlockNumber);

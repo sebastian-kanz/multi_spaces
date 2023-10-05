@@ -8,7 +8,7 @@ import 'package:web3dart/crypto.dart';
 
 part 'meta_model.g.dart';
 
-@JsonSerializable()
+@JsonSerializable(includeIfNull: false, checked: true)
 @HiveType(typeId: hiveMetaModelTypeId)
 class MetaModel extends HiveObject {
   @HiveField(0)
@@ -27,24 +27,27 @@ class MetaModel extends HiveObject {
   int created; // unixtimestamp
 
   @HiveField(5)
-  int? quality; // quality of the data element
+  int size; // bytes
 
   @HiveField(6)
-  String? metaRef; // ipfs hash of a meta element that might be related to this
+  int? quality; // quality of the data element
 
   @HiveField(7)
-  String? tags; // json list of tags
+  String? metaRef; // ipfs hash of a meta element that might be related to this
 
   @HiveField(8)
-  String? coordinates; // json, where was the data element created
+  String? tags; // json list of tags
 
   @HiveField(9)
-  String? language; // ISO language code
+  String? coordinates; // json, where was the data element created
 
   @HiveField(10)
-  String? compression; // compression algorithm used on data element, e.g. zip
+  String? language; // ISO language code
 
   @HiveField(11)
+  String? compression; // compression algorithm used on data element, e.g. zip
+
+  @HiveField(12)
   String? deeplink;
 
   MetaModel(
@@ -52,7 +55,8 @@ class MetaModel extends HiveObject {
     this.name,
     this.type,
     this.format,
-    this.created, [
+    this.created,
+    this.size, [
     this.quality,
     this.metaRef,
     this.tags,
@@ -66,9 +70,14 @@ class MetaModel extends HiveObject {
       _$MetaModelFromJson(json);
 
   factory MetaModel.fromHex(String hex) {
-    final bytes = hexToBytes(hex);
-    final jsonStr = String.fromCharCodes(bytes);
-    return MetaModel.fromJson(json.decode(jsonStr));
+    try {
+      final bytes = hexToBytes(hex);
+      final jsonStr = String.fromCharCodes(bytes).replaceAll(": ,", ": '',");
+      return MetaModel.fromJson(json.decode(jsonStr));
+    } catch (e) {
+      print(e);
+      rethrow;
+    }
   }
 
   Map<String, dynamic> toJson() => _$MetaModelToJson(this);
@@ -76,5 +85,9 @@ class MetaModel extends HiveObject {
   String toHex() {
     final bytes = Uint8List.fromList(json.encode(toJson()).codeUnits);
     return bytesToHex(bytes);
+  }
+
+  Uint8List toBytes() {
+    return Uint8List.fromList(json.encode(toJson()).codeUnits);
   }
 }

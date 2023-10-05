@@ -22,20 +22,21 @@ class MetaModelAdapter extends TypeAdapter<MetaModel> {
       fields[2] as String,
       fields[3] as String,
       fields[4] as int,
-      fields[5] as int?,
-      fields[6] as String?,
+      fields[5] as int,
+      fields[6] as int?,
       fields[7] as String?,
       fields[8] as String?,
       fields[9] as String?,
       fields[10] as String?,
       fields[11] as String?,
+      fields[12] as String?,
     );
   }
 
   @override
   void write(BinaryWriter writer, MetaModel obj) {
     writer
-      ..writeByte(12)
+      ..writeByte(13)
       ..writeByte(0)
       ..write(obj.hash)
       ..writeByte(1)
@@ -47,18 +48,20 @@ class MetaModelAdapter extends TypeAdapter<MetaModel> {
       ..writeByte(4)
       ..write(obj.created)
       ..writeByte(5)
-      ..write(obj.quality)
+      ..write(obj.size)
       ..writeByte(6)
-      ..write(obj.metaRef)
+      ..write(obj.quality)
       ..writeByte(7)
-      ..write(obj.tags)
+      ..write(obj.metaRef)
       ..writeByte(8)
-      ..write(obj.coordinates)
+      ..write(obj.tags)
       ..writeByte(9)
-      ..write(obj.language)
+      ..write(obj.coordinates)
       ..writeByte(10)
-      ..write(obj.compression)
+      ..write(obj.language)
       ..writeByte(11)
+      ..write(obj.compression)
+      ..writeByte(12)
       ..write(obj.deeplink);
   }
 
@@ -77,32 +80,51 @@ class MetaModelAdapter extends TypeAdapter<MetaModel> {
 // JsonSerializableGenerator
 // **************************************************************************
 
-MetaModel _$MetaModelFromJson(Map<String, dynamic> json) => MetaModel(
-      json['hash'] as String,
-      json['name'] as String,
-      json['type'] as String,
-      json['format'] as String,
-      json['created'] as int,
-      json['quality'] as int?,
-      json['metaRef'] as String?,
-      json['tags'] as String?,
-      json['coordinates'] as String?,
-      json['language'] as String?,
-      json['compression'] as String?,
-      json['deeplink'] as String?,
+MetaModel _$MetaModelFromJson(Map<String, dynamic> json) => $checkedCreate(
+      'MetaModel',
+      json,
+      ($checkedConvert) {
+        final val = MetaModel(
+          $checkedConvert('hash', (v) => v as String),
+          $checkedConvert('name', (v) => v as String),
+          $checkedConvert('type', (v) => v as String),
+          $checkedConvert('format', (v) => v as String),
+          $checkedConvert('created', (v) => v as int),
+          $checkedConvert('size', (v) => v as int),
+          $checkedConvert('quality', (v) => v as int?),
+          $checkedConvert('metaRef', (v) => v as String?),
+          $checkedConvert('tags', (v) => v as String?),
+          $checkedConvert('coordinates', (v) => v as String?),
+          $checkedConvert('language', (v) => v as String?),
+          $checkedConvert('compression', (v) => v as String?),
+          $checkedConvert('deeplink', (v) => v as String?),
+        );
+        return val;
+      },
     );
 
-Map<String, dynamic> _$MetaModelToJson(MetaModel instance) => <String, dynamic>{
-      'hash': instance.hash,
-      'name': instance.name,
-      'type': instance.type,
-      'format': instance.format,
-      'created': instance.created,
-      'quality': instance.quality,
-      'metaRef': instance.metaRef,
-      'tags': instance.tags,
-      'coordinates': instance.coordinates,
-      'language': instance.language,
-      'compression': instance.compression,
-      'deeplink': instance.deeplink,
-    };
+Map<String, dynamic> _$MetaModelToJson(MetaModel instance) {
+  final val = <String, dynamic>{
+    'hash': instance.hash,
+    'name': instance.name,
+    'type': instance.type,
+    'format': instance.format,
+    'created': instance.created,
+    'size': instance.size,
+  };
+
+  void writeNotNull(String key, dynamic value) {
+    if (value != null) {
+      val[key] = value;
+    }
+  }
+
+  writeNotNull('quality', instance.quality);
+  writeNotNull('metaRef', instance.metaRef);
+  writeNotNull('tags', instance.tags);
+  writeNotNull('coordinates', instance.coordinates);
+  writeNotNull('language', instance.language);
+  writeNotNull('compression', instance.compression);
+  writeNotNull('deeplink', instance.deeplink);
+  return val;
+}

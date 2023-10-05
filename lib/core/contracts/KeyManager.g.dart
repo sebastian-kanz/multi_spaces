@@ -4,7 +4,7 @@
 import 'package:web3dart/web3dart.dart' as _i1;
 
 final _contractAbi = _i1.ContractAbi.fromJson(
-  '[{"anonymous":false,"inputs":[{"indexed":true,"internalType":"uint256","name":"epoch","type":"uint256"}],"name":"KeysAdded","type":"event"},{"inputs":[],"name":"EPOCH","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"GENESIS","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"participant","type":"address"},{"internalType":"uint256","name":"blockNumber","type":"uint256"}],"name":"getKeyBundle","outputs":[{"internalType":"string","name":"","type":"string"},{"internalType":"string","name":"","type":"string"}],"stateMutability":"view","type":"function"}]',
+  '[{"anonymous":false,"inputs":[{"indexed":true,"internalType":"uint256","name":"epoch","type":"uint256"}],"name":"KeysAdded","type":"event"},{"inputs":[],"name":"EPOCH","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"GENESIS","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"","type":"uint256"}],"name":"allEpochs","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"allEpochsCount","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"","type":"uint256"},{"internalType":"address","name":"","type":"address"}],"name":"epochToParticipantToKeyMapping","outputs":[{"internalType":"string","name":"key","type":"string"},{"internalType":"string","name":"keyCreatorPubKey","type":"string"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"participant","type":"address"},{"internalType":"uint256","name":"blockNumber","type":"uint256"}],"name":"getKeyBundle","outputs":[{"internalType":"string","name":"","type":"string"},{"internalType":"string","name":"","type":"string"}],"stateMutability":"view","type":"function"}]',
   'KeyManager',
 );
 
@@ -55,12 +55,67 @@ class KeyManager extends _i1.GeneratedContract {
   /// The optional [atBlock] parameter can be used to view historical data. When
   /// set, the function will be evaluated in the specified block. By default, the
   /// latest on-chain block will be used.
+  Future<BigInt> allEpochs(
+    BigInt $param0, {
+    _i1.BlockNum? atBlock,
+  }) async {
+    final function = self.abi.functions[2];
+    assert(checkSignature(function, '4a6513e3'));
+    final params = [$param0];
+    final response = await read(
+      function,
+      params,
+      atBlock,
+    );
+    return (response[0] as BigInt);
+  }
+
+  /// The optional [atBlock] parameter can be used to view historical data. When
+  /// set, the function will be evaluated in the specified block. By default, the
+  /// latest on-chain block will be used.
+  Future<BigInt> allEpochsCount({_i1.BlockNum? atBlock}) async {
+    final function = self.abi.functions[3];
+    assert(checkSignature(function, '30f178b6'));
+    final params = [];
+    final response = await read(
+      function,
+      params,
+      atBlock,
+    );
+    return (response[0] as BigInt);
+  }
+
+  /// The optional [atBlock] parameter can be used to view historical data. When
+  /// set, the function will be evaluated in the specified block. By default, the
+  /// latest on-chain block will be used.
+  Future<EpochToParticipantToKeyMapping> epochToParticipantToKeyMapping(
+    BigInt $param1,
+    _i1.EthereumAddress $param2, {
+    _i1.BlockNum? atBlock,
+  }) async {
+    final function = self.abi.functions[4];
+    assert(checkSignature(function, 'cc1de539'));
+    final params = [
+      $param1,
+      $param2,
+    ];
+    final response = await read(
+      function,
+      params,
+      atBlock,
+    );
+    return EpochToParticipantToKeyMapping(response);
+  }
+
+  /// The optional [atBlock] parameter can be used to view historical data. When
+  /// set, the function will be evaluated in the specified block. By default, the
+  /// latest on-chain block will be used.
   Future<GetKeyBundle> getKeyBundle(
     _i1.EthereumAddress participant,
     BigInt blockNumber, {
     _i1.BlockNum? atBlock,
   }) async {
-    final function = self.abi.functions[2];
+    final function = self.abi.functions[5];
     assert(checkSignature(function, 'e4601393'));
     final params = [
       participant,
@@ -91,9 +146,22 @@ class KeyManager extends _i1.GeneratedContract {
         result.topics!,
         result.data!,
       );
-      return KeysAdded(decoded);
+      return KeysAdded(
+        decoded,
+        result,
+      );
     });
   }
+}
+
+class EpochToParticipantToKeyMapping {
+  EpochToParticipantToKeyMapping(List<dynamic> response)
+      : key = (response[0] as String),
+        keyCreatorPubKey = (response[1] as String);
+
+  final String key;
+
+  final String keyCreatorPubKey;
 }
 
 class GetKeyBundle {
@@ -107,7 +175,12 @@ class GetKeyBundle {
 }
 
 class KeysAdded {
-  KeysAdded(List<dynamic> response) : epoch = (response[0] as BigInt);
+  KeysAdded(
+    List<dynamic> response,
+    this.event,
+  ) : epoch = (response[0] as BigInt);
 
   final BigInt epoch;
+
+  final _i1.FilterEvent event;
 }

@@ -1,9 +1,9 @@
 import 'package:hive/hive.dart';
-import 'package:http/http.dart';
 import 'package:multi_spaces/core/constants.dart';
 import 'package:multi_spaces/core/contracts/Element.g.dart';
 import 'package:multi_spaces/core/env/Env.dart';
 import 'package:web3dart/web3dart.dart';
+import 'package:multi_spaces/core/networking/MultiSpaceClient.dart';
 
 part 'element_model.g.dart';
 
@@ -67,7 +67,7 @@ class ElementModel extends HiveObject {
   Future<void> update() async {
     final elem = Element(
       address: element,
-      client: Web3Client(Env.eth_url, Client()),
+      client: MultiSpaceClient().client,
       chainId: Env.chain_id,
     );
     parentElement = await elem.parentBucket();
@@ -79,7 +79,7 @@ class ElementModel extends HiveObject {
 
   Element getElement() => Element(
         address: element,
-        client: Web3Client(Env.eth_url, Client()),
+        client: MultiSpaceClient().client,
         chainId: Env.chain_id,
       );
 }

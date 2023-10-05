@@ -10,7 +10,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  http: ^0.13.4
+  http: ^1.1.0 # ^0.13.4
   logger: ^1.1.0
   ipfs_api:
     path: ../ipfs_api

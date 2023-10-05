@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:dartz/dartz.dart';
 import 'package:flutter/foundation.dart';
 import 'package:multi_spaces/bucket/domain/entity/element_entity.dart';
-import 'package:multi_spaces/bucket/domain/entity/participant_entity.dart';
 import 'package:multi_spaces/bucket/domain/repository/bucket_repository.dart';
 import 'package:multi_spaces/bucket/domain/repository/container_repository.dart';
 import 'package:multi_spaces/bucket/domain/repository/data_repository.dart';
@@ -12,7 +11,6 @@ import 'package:multi_spaces/bucket/domain/repository/ipfs_vault_repository.dart
 import 'package:multi_spaces/bucket/domain/repository/meta_repository.dart';
 import 'package:multi_spaces/bucket/domain/repository/participant_repository.dart';
 import 'package:multi_spaces/core/error/failures.dart';
-import 'package:web3dart/crypto.dart';
 import 'package:web3dart/web3dart.dart';
 
 import '../../../core/usecases/usecase.dart';
@@ -54,13 +52,21 @@ class CreateElementUseCase
       final meta = await metaRepository.createMeta(
         params.createMetaDto,
       );
-      final data = await dataRepository.createData(params.data);
+      var dataHash = "";
+      if (params.data.isNotEmpty) {
+        final data = await dataRepository.createData(params.data);
+        dataHash = data.hash;
+      }
+
+      // TODO: Check balance, if limit depleted send via walletconnect, otherwise internally
       final transactionHash = await elementRepository.createElement(
         meta.hash,
-        data.hash,
+        dataHash,
         container.hash,
         params.parent,
         ContentType.file,
+        // internal: false,
+        // baseFee: some Value
       );
       return Right(transactionHash);
     } catch (e) {

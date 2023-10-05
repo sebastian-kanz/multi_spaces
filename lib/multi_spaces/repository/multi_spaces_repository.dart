@@ -2,28 +2,22 @@ import 'package:blockchain_provider/blockchain_provider.dart';
 import 'package:multi_spaces/core/contracts/MultiSpaces.g.dart';
 import 'package:multi_spaces/core/env/Env.dart';
 import 'package:web3dart/web3dart.dart';
-import 'package:http/http.dart';
+import 'package:multi_spaces/core/networking/MultiSpaceClient.dart';
 
 class MultiSpacesRepository {
-  MultiSpacesRepository(List<BlockchainProvider> providers)
-      : _client = Web3Client(Env.eth_url, Client()),
+  MultiSpacesRepository()
+      : _client = MultiSpaceClient().client,
         _multiSpaces = MultiSpaces(
             address: EthereumAddress.fromHex(Env.multi_spaces_contract_address),
-            client: Web3Client(Env.eth_url, Client()),
-            chainId: Env.chain_id) {
-    for (var provider in providers) {
-      if (provider.isAuthenticated()) {
-        _provider = provider;
-      }
-    }
-  }
+            client: MultiSpaceClient().client,
+            chainId: Env.chain_id);
 
   final MultiSpaces _multiSpaces;
-  late BlockchainProvider _provider;
   final Web3Client _client;
 
-  Stream<String> get listenNewBlocks async* {
-    yield* _client.addedBlocks();
+  Stream<String> get listenNewBlocks {
+    // yield* _client.addedBlocks();
+    return _client.addedBlocks();
   }
 
   Future<TransactionReceipt?> getTransactionReceipt(String hash) async {
@@ -31,7 +25,8 @@ class MultiSpacesRepository {
   }
 
   Future<EthereumAddress> getExistingSpace() async {
-    final pubKey = _provider.getPublicKey();
+    final pubKey =
+        BlockchainProviderManager().authenticatedProvider!.getPublicKey();
     return _multiSpaces.ownedSpaces(pubKey);
   }
 
@@ -41,7 +36,8 @@ class MultiSpacesRepository {
 
   Future<String> createSpace() async {
     final baseFee = await _multiSpaces.baseFee();
-    final account = _provider.getAccount();
+    final account =
+        BlockchainProviderManager().authenticatedProvider!.getAccount();
     final balance = await _client.getBalance(account);
     if (balance.getInWei < baseFee) {
       throw InsufficientFundsException(
@@ -50,8 +46,9 @@ class MultiSpacesRepository {
     }
     return _multiSpaces.createSpace(
       "MySpace",
-      _provider.getPublicKey(),
-      credentials: _provider.getCredentails(),
+      BlockchainProviderManager().authenticatedProvider!.getPublicKey(),
+      credentials:
+          BlockchainProviderManager().authenticatedProvider!.getCredentails(),
       transaction: Transaction(
         from: account,
         maxGas: 3000000,

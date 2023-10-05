@@ -1,6 +1,8 @@
 import 'dart:async';
 
 import 'package:dartz/dartz.dart';
+import 'package:multi_spaces/bucket/domain/entity/container_entity.dart';
+import 'package:multi_spaces/bucket/domain/entity/meta_entity.dart';
 import 'package:multi_spaces/bucket/domain/repository/container_repository.dart';
 import 'package:multi_spaces/bucket/domain/repository/data_repository.dart';
 import 'package:multi_spaces/bucket/domain/repository/element_repository.dart';
@@ -10,7 +12,14 @@ import 'package:multi_spaces/core/error/failures.dart';
 import '../../../core/usecases/usecase.dart';
 import '../entity/full_element_entity.dart';
 
-class GetFullElementsUseCase implements UseCase<List<FullElementEntity>, bool> {
+class GetFullElementsUseCaseParams {
+  final bool syncData;
+  final FullElementEntity? parent;
+  GetFullElementsUseCaseParams(this.syncData, this.parent);
+}
+
+class GetFullElementsUseCase
+    implements UseCase<List<FullElementEntity>, GetFullElementsUseCaseParams> {
   final ElementRepository elementRepository;
   final MetaRepository metaRepository;
   final DataRepository dataRepository;
@@ -25,27 +34,45 @@ class GetFullElementsUseCase implements UseCase<List<FullElementEntity>, bool> {
 
   @override
   Future<Either<Failure, List<FullElementEntity>>> call(
-    bool withData,
+    GetFullElementsUseCaseParams params,
   ) async {
     try {
-      final allElements = await elementRepository.getAllLocalElements();
+      final allElements = await elementRepository.getLatestChildren(
+          parent: params.parent?.element);
       final allFullElements =
           await Future.wait(allElements.map((element) async {
-        final meta = await metaRepository.getMeta(
-          element.metaHash,
-          creationBlockNumber: element.created,
-        );
-        final data = await dataRepository.getData(
-          element.dataHash,
-          creationBlockNumber: element.created,
-        );
-        final container =
-            await containerRepository.getContainer(element.containerHash);
-        if (withData) {
-          return FullElementEntity(element, container, meta, data: data);
+        try {
+          final meta = await metaRepository.getMeta(
+            element.metaHash,
+            creationBlockNumber: element.created,
+          );
+          final data = await dataRepository.getData(
+            element.dataHash,
+            creationBlockNumber: element.created,
+          );
+          final container =
+              await containerRepository.getContainer(element.containerHash);
+          if (params.syncData) {
+            return FullElementEntity(element, container, meta, data: data);
+          }
+          return FullElementEntity(element, container, meta);
+        } catch (e) {
+          print(e);
+          return FullElementEntity(
+            element,
+            ContainerEntity(element.containerHash, "UNKNOWN"),
+            MetaEntity(
+              element.metaHash,
+              "UNKNOWN",
+              "UNKNOWN",
+              "UNKNOWN",
+              -1,
+              -1,
+            ),
+          );
         }
-        return FullElementEntity(element, container, meta);
       }));
+      allFullElements.sort(((a, b) => b.meta.created - a.meta.created));
       return Right(allFullElements);
     } catch (e) {
       return Left(UseCaseFailure('Getting elemens failed: $e'));

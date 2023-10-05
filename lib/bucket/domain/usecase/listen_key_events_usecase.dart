@@ -11,9 +11,9 @@ class ListenKeyEventsUseCase implements StreamUseCase<int, void> {
   @override
   Future<Stream<int>> call([void params]) async {
     try {
-      return StreamGroup.merge([
+      return Future.value(
         repository.listenKey,
-      ]);
+      );
     } catch (e) {
       print(e);
       rethrow;

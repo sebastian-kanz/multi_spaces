@@ -5,6 +5,7 @@ class CreateMetaDto {
   String type;
   String format;
   int created;
+  int size;
   int? quality;
   String? metaRef;
   String? tags;
@@ -17,7 +18,8 @@ class CreateMetaDto {
     this.name,
     this.type,
     this.format,
-    this.created, {
+    this.created,
+    this.size, {
     this.quality,
     this.metaRef,
     this.tags,

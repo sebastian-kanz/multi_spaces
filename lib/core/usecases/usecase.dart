@@ -8,7 +8,7 @@ abstract class UseCase<Type, Params> {
 }
 
 abstract class StreamUseCase<Type, Params extends Object?> {
-  Future<Stream<Type>> call([Params? params]);
+  Future<Stream<Type>> call(Params? params);
 }
 
 class NoParams extends Equatable {

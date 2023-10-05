@@ -166,6 +166,19 @@
   {
     "inputs": [
       {
+        "internalType": "address",
+        "name": "requestor",
+        "type": "address"
+      }
+    ],
+    "name": "acceptParticipation",
+    "outputs": [],
+    "stateMutability": "payable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
         "internalType": "string[]",
         "name": "keys",
         "type": "string[]"
@@ -189,6 +202,29 @@
   {
     "inputs": [
       {
+        "internalType": "string",
+        "name": "newParticipantName",
+        "type": "string"
+      },
+      {
+        "internalType": "address",
+        "name": "newParticipantAdr",
+        "type": "address"
+      },
+      {
+        "internalType": "bytes",
+        "name": "newParticipantPubKey",
+        "type": "bytes"
+      }
+    ],
+    "name": "addParticipation",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
         "internalType": "uint256",
         "name": "",
         "type": "uint256"
@@ -200,6 +236,38 @@
         "internalType": "address",
         "name": "",
         "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "name": "allEpochs",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "allEpochsCount",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
       }
     ],
     "stateMutability": "view",
@@ -253,6 +321,35 @@
         "internalType": "address",
         "name": "",
         "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      },
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "name": "epochToParticipantToKeyMapping",
+    "outputs": [
+      {
+        "internalType": "string",
+        "name": "key",
+        "type": "string"
+      },
+      {
+        "internalType": "string",
+        "name": "keyCreatorPubKey",
+        "type": "string"
       }
     ],
     "stateMutability": "view",
@@ -523,39 +620,6 @@
   {
     "inputs": [
       {
-        "internalType": "string",
-        "name": "name",
-        "type": "string"
-      },
-      {
-        "internalType": "address",
-        "name": "inviter",
-        "type": "address"
-      },
-      {
-        "internalType": "bytes",
-        "name": "signature",
-        "type": "bytes"
-      },
-      {
-        "internalType": "string",
-        "name": "randomCode",
-        "type": "string"
-      },
-      {
-        "internalType": "bytes",
-        "name": "pubKey",
-        "type": "bytes"
-      }
-    ],
-    "name": "redeemParticipationCode",
-    "outputs": [],
-    "stateMutability": "payable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
         "internalType": "address",
         "name": "",
         "type": "address"
@@ -575,6 +639,49 @@
   {
     "inputs": [],
     "name": "removeParticipation",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "string",
+        "name": "name",
+        "type": "string"
+      },
+      {
+        "internalType": "address",
+        "name": "requestor",
+        "type": "address"
+      },
+      {
+        "internalType": "bytes",
+        "name": "pubKey",
+        "type": "bytes"
+      },
+      {
+        "internalType": "string",
+        "name": "deviceName",
+        "type": "string"
+      },
+      {
+        "internalType": "address",
+        "name": "device",
+        "type": "address"
+      },
+      {
+        "internalType": "bytes",
+        "name": "devicePubKey",
+        "type": "bytes"
+      },
+      {
+        "internalType": "bytes",
+        "name": "signature",
+        "type": "bytes"
+      }
+    ],
+    "name": "requestParticipation",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"

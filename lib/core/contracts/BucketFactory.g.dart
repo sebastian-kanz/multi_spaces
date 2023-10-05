@@ -214,17 +214,24 @@ class BucketFactory extends _i1.GeneratedContract {
         result.topics!,
         result.data!,
       );
-      return OwnershipTransferred(decoded);
+      return OwnershipTransferred(
+        decoded,
+        result,
+      );
     });
   }
 }
 
 class OwnershipTransferred {
-  OwnershipTransferred(List<dynamic> response)
-      : previousOwner = (response[0] as _i1.EthereumAddress),
+  OwnershipTransferred(
+    List<dynamic> response,
+    this.event,
+  )   : previousOwner = (response[0] as _i1.EthereumAddress),
         newOwner = (response[1] as _i1.EthereumAddress);
 
   final _i1.EthereumAddress previousOwner;
 
   final _i1.EthereumAddress newOwner;
+
+  final _i1.FilterEvent event;
 }

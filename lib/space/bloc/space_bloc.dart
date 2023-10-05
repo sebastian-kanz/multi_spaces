@@ -1,5 +1,7 @@
 import 'dart:async';
+import 'dart:io';
 
+import 'package:blockchain_provider/blockchain_provider.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:multi_spaces/core/contracts/Space.g.dart';
@@ -13,6 +15,7 @@ import 'package:web3dart/web3dart.dart';
 part 'space_event.dart';
 part 'space_state.dart';
 
+// TODO: Make hydrated bloc
 class SpaceBloc extends Bloc<SpaceEvent, SpaceState> {
   final SpaceRepository _spaceRepository;
   final TransactionBloc _transactionBloc;
@@ -21,7 +24,6 @@ class SpaceBloc extends Bloc<SpaceEvent, SpaceState> {
   late final StreamSubscription _createSubscription;
   late final StreamSubscription _removeSubscription;
   late final StreamSubscription _renameSubscription;
-  late final StreamSubscription _initSubscription;
 
   SpaceBloc({
     required SpaceRepository spaceRepository,
@@ -38,37 +40,39 @@ class SpaceBloc extends Bloc<SpaceEvent, SpaceState> {
     on<RenameBucketEvent>(_onRenameBucketEvent);
     on<RemoveBucketEvent>(_onRemoveBucketEvent);
 
+    // TODO: Do we need these subscriptions?? Reload does its job...
     _createSubscription = _spaceRepository.listenCreate.listen(
       (createEvent) {
+        _logger.d("Bucket created: ${createEvent.addr.hex}");
         add(const GetBucketsEvent());
       },
       onError: (error) => _logger.d(error),
     );
 
     _removeSubscription = _spaceRepository.listenRemove.listen(
-      (createEvent) {
+      (removeEvent) {
+        _logger.d("Bucket removed: ${removeEvent.addr.hex}");
         add(const GetBucketsEvent());
       },
       onError: (error) => _logger.e(error),
     );
 
     _renameSubscription = _spaceRepository.listenRename.listen(
-      (createEvent) {
-        add(const GetBucketsEvent());
-      },
-      onError: (error) => _logger.e(error),
-    );
-
-    _initSubscription = _spaceRepository.listenInitialize.listen(
-      (createEvent) {
+      (renameEvent) {
+        _logger.d("Bucket renamed: ${renameEvent.addr.hex}");
         add(const GetBucketsEvent());
       },
       onError: (error) => _logger.e(error),
     );
 
     _paymentBloc.add(
-      InitPaymentEvent(
-        account: state.address,
+      InitPaymentsEvent(
+        accounts: [
+          state.address,
+          BlockchainProviderManager().authenticatedProvider!.getAccount(),
+          BlockchainProviderManager().internalProvider.getAccount(),
+        ],
+        selected: 0,
       ),
     );
   }
@@ -78,7 +82,6 @@ class SpaceBloc extends Bloc<SpaceEvent, SpaceState> {
     _createSubscription.cancel();
     _removeSubscription.cancel();
     _renameSubscription.cancel();
-    _initSubscription.cancel();
     return super.close();
   }
 
@@ -144,6 +147,17 @@ class SpaceBloc extends Bloc<SpaceEvent, SpaceState> {
       } else {
         result = await _spaceRepository.createBucket(event.bucketName);
       }
+      if (result == "") {
+        _logger.d('User rejected bucket creation!');
+        emit(
+          SpaceError(
+            Exception('User rejected bucket creation!'),
+            state.address,
+          ),
+        );
+        return;
+      }
+      // TODO: if result == "" then user rejected
       _transactionBloc.add(TransactionSubmittedEvent(transactionHash: result));
       _logger.d('Bucket created: $result');
     } catch (e) {

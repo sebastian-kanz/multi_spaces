@@ -39,13 +39,21 @@ class Initializable extends _i1.GeneratedContract {
         result.topics!,
         result.data!,
       );
-      return Initialized(decoded);
+      return Initialized(
+        decoded,
+        result,
+      );
     });
   }
 }
 
 class Initialized {
-  Initialized(List<dynamic> response) : version = (response[0] as BigInt);
+  Initialized(
+    List<dynamic> response,
+    this.event,
+  ) : version = (response[0] as BigInt);
 
   final BigInt version;
+
+  final _i1.FilterEvent event;
 }

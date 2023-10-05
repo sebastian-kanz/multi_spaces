@@ -25,9 +25,7 @@ class ContainerRepositoryImpl
     var model = box.get(hash);
     if (model == null) {
       if (!sync) {
-        throw RepositoryFailure(
-          "No local copy of container $hash found and sync is disabled.",
-        );
+        return ContainerEntity.unsynced(hash);
       }
       final ipfsObject = await ipfsRepository.get(hash);
       model = ContainerModel(hash, String.fromCharCodes(ipfsObject.data));

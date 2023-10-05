@@ -51,3 +51,11 @@ class UpdateParentElementEventEntity extends ElementEventEntity {
     this.sender,
   );
 }
+
+class ElementRequestEventEntity extends ElementEventEntity {
+  final EthereumAddress element;
+  final EthereumAddress requestor;
+  final int block;
+
+  const ElementRequestEventEntity(this.element, this.requestor, this.block);
+}

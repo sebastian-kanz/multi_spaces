@@ -234,7 +234,10 @@ class Space extends _i1.GeneratedContract {
         result.topics!,
         result.data!,
       );
-      return Create(decoded);
+      return Create(
+        decoded,
+        result,
+      );
     });
   }
 
@@ -255,7 +258,10 @@ class Space extends _i1.GeneratedContract {
         result.topics!,
         result.data!,
       );
-      return Initialized(decoded);
+      return Initialized(
+        decoded,
+        result,
+      );
     });
   }
 
@@ -276,7 +282,10 @@ class Space extends _i1.GeneratedContract {
         result.topics!,
         result.data!,
       );
-      return Remove(decoded);
+      return Remove(
+        decoded,
+        result,
+      );
     });
   }
 
@@ -297,7 +306,10 @@ class Space extends _i1.GeneratedContract {
         result.topics!,
         result.data!,
       );
-      return Rename(decoded);
+      return Rename(
+        decoded,
+        result,
+      );
     });
   }
 }
@@ -332,37 +344,54 @@ class SpaceOwner {
 }
 
 class Create {
-  Create(List<dynamic> response)
-      : addr = (response[0] as _i1.EthereumAddress),
+  Create(
+    List<dynamic> response,
+    this.event,
+  )   : addr = (response[0] as _i1.EthereumAddress),
         sender = (response[1] as _i1.EthereumAddress);
 
   final _i1.EthereumAddress addr;
 
   final _i1.EthereumAddress sender;
+
+  final _i1.FilterEvent event;
 }
 
 class Initialized {
-  Initialized(List<dynamic> response) : version = (response[0] as BigInt);
+  Initialized(
+    List<dynamic> response,
+    this.event,
+  ) : version = (response[0] as BigInt);
 
   final BigInt version;
+
+  final _i1.FilterEvent event;
 }
 
 class Remove {
-  Remove(List<dynamic> response)
-      : addr = (response[0] as _i1.EthereumAddress),
+  Remove(
+    List<dynamic> response,
+    this.event,
+  )   : addr = (response[0] as _i1.EthereumAddress),
         sender = (response[1] as _i1.EthereumAddress);
 
   final _i1.EthereumAddress addr;
 
   final _i1.EthereumAddress sender;
+
+  final _i1.FilterEvent event;
 }
 
 class Rename {
-  Rename(List<dynamic> response)
-      : addr = (response[0] as _i1.EthereumAddress),
+  Rename(
+    List<dynamic> response,
+    this.event,
+  )   : addr = (response[0] as _i1.EthereumAddress),
         sender = (response[1] as _i1.EthereumAddress);
 
   final _i1.EthereumAddress addr;
 
   final _i1.EthereumAddress sender;
+
+  final _i1.FilterEvent event;
 }

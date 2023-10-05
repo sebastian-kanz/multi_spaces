@@ -5,19 +5,9 @@ import 'models/models.dart';
 enum ConnectionStatus { unknown, initialized, connected, disconnected }
 
 class UserRepository {
-  BlockchainProvider? _provider;
   final _controller = StreamController<ConnectionStatus>();
 
-  UserRepository(List<BlockchainProvider> providers) {
-    for (var provider in providers) {
-      if (provider.isAuthenticated()) {
-        _provider = provider;
-      }
-    }
-  }
-
-  void init(BlockchainProvider provider) {
-    _provider = provider;
+  void init() {
     _controller.add(ConnectionStatus.initialized);
   }
 
@@ -26,8 +16,10 @@ class UserRepository {
   }
 
   Future<User?> getUser() async {
-    final account = _provider?.getAccount();
-    final userInfo = await _provider?.getUserInfo();
+    final account =
+        BlockchainProviderManager().authenticatedProvider?.getAccount();
+    final userInfo =
+        await BlockchainProviderManager().authenticatedProvider?.getUserInfo();
     if (account == null) {
       return null;
     }
