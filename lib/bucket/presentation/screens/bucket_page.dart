@@ -101,12 +101,7 @@ class BucketPage extends StatelessWidget {
     required this.isExternal,
   });
 
-  static Future<BucketBlocUseCases> _setup(
-    BuildContext context,
-    EthereumAddress bucketAddress,
-    String ownerName,
-    EthereumAddress ownerAddress,
-  ) async {
+  Future<BucketBlocUseCases> _setup(BuildContext context) async {
     final bucketRepository = BucketRepositoryImpl(
       bucketAddress.hex,
     );
@@ -144,7 +139,7 @@ class BucketPage extends StatelessWidget {
     final metaRepository = MetaRepositoryImpl(ipfsVaultRepository);
     await metaRepository.initialize(bucketAddress.hex);
     final fileStorageRepository =
-        FileStorageRepository(ownerName, bucketAddress.hex);
+        FileStorageRepository(ownerName, bucketAddress.hex, bucketName);
     final dataRepository = DataRepositoryImpl(
       ipfsVaultRepository,
       fileStorageRepository,
@@ -234,7 +229,7 @@ class BucketPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<BucketBlocUseCases>(
-        future: _setup(context, bucketAddress, ownerName, ownerAddress),
+        future: _setup(context),
         builder: (context, AsyncSnapshot<BucketBlocUseCases> snapshot) {
           if (snapshot.hasError) {
             print(snapshot.error);
@@ -323,6 +318,7 @@ class BucketPageView extends StatelessWidget {
                   format: event.format,
                   created: event.created,
                   size: event.size,
+                  parents: event.parents,
                 ),
               );
             }
@@ -374,9 +370,7 @@ class BucketPageView extends StatelessWidget {
                             final parents = BlocProvider.of<BucketBloc>(context)
                                 .state
                                 .parents;
-                            print(parents.length);
                             parents.removeLast();
-                            print(parents.length);
                             BlocProvider.of<BucketBloc>(context).add(
                               GetElementsEvent(parents: parents),
                             );
@@ -520,6 +514,7 @@ class BucketPageView extends StatelessWidget {
                 format: "",
                 created: DateTime.now().toUtc().millisecondsSinceEpoch,
                 size: 0,
+                parents: BlocProvider.of<BucketBloc>(context).state.parents,
               );
               context.read<BucketBloc>().add(CreateKeysEvent(createEvent));
               _key.currentState?.toggle();
@@ -545,6 +540,7 @@ class BucketPageView extends StatelessWidget {
                   format: "",
                   created: DateTime.now().toUtc().millisecondsSinceEpoch,
                   size: size,
+                  parents: BlocProvider.of<BucketBloc>(context).state.parents,
                 );
                 context.read<BucketBloc>().add(CreateKeysEvent(createEvent));
                 _key.currentState?.toggle();

@@ -7,17 +7,19 @@ class OperationMapper {
       model.elem,
       OperationType.values[model.operationType.toInt()],
       model.blockNumber,
-      false,
+      model.synced,
       model.index,
     );
   }
 
   static OperationModel toModel(OperationEntity entity) {
-    return OperationModel(
+    final model = OperationModel(
       entity.element,
       BigInt.from(entity.operationType.index),
       entity.blockNumber,
       entity.index,
     );
+    model.synced = entity.synced;
+    return model;
   }
 }

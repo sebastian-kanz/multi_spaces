@@ -34,7 +34,7 @@ class MultiSpacesRepository {
     return _multiSpaces.paymentManager();
   }
 
-  Future<String> createSpace() async {
+  Future<String> createSpace(String name) async {
     final baseFee = await _multiSpaces.baseFee();
     final account =
         BlockchainProviderManager().authenticatedProvider!.getAccount();
@@ -45,7 +45,7 @@ class MultiSpacesRepository {
       );
     }
     return _multiSpaces.createSpace(
-      "MySpace",
+      name,
       BlockchainProviderManager().authenticatedProvider!.getPublicKey(),
       credentials:
           BlockchainProviderManager().authenticatedProvider!.getCredentails(),

@@ -26,7 +26,6 @@ import 'package:multi_spaces/bucket/domain/usecase/listen_request_events_usecase
 import 'package:multi_spaces/bucket/domain/usecase/request_participation_usecase.dart';
 import 'package:multi_spaces/bucket/domain/usecase/sync_elements_usecase.dart';
 import 'package:multi_spaces/bucket/domain/usecase/sync_history_usecase.dart';
-import 'package:multi_spaces/core/constants.dart';
 import 'package:multi_spaces/core/env/Env.dart';
 import 'package:multi_spaces/core/error/failures.dart';
 import 'package:multi_spaces/core/utils/logger.util.dart';
@@ -115,6 +114,7 @@ class BucketBloc extends HydratedBloc<BucketEvent, BucketState> {
     on<InitBucketEvent>(_onInitBucketEvent);
     on<LoadBucketEvent>(_onLoadBucketEvent);
     on<GetElementsEvent>(_onGetElementsEvent);
+    on<GetRequestsEvent>(_onGetRequestsEvent);
     on<CreateKeysEvent>(_onCreateKeysEvent);
     on<CreateElementEvent>(_onCreateElementEvent);
     // on<AddProviderParticipationEvent>(_onAddProviderParticipationEvent);
@@ -133,7 +133,9 @@ class BucketBloc extends HydratedBloc<BucketEvent, BucketState> {
   }
 
   @override
-  Map<String, dynamic> toJson(BucketState state) => state.toJson();
+  Map<String, dynamic> toJson(BucketState state) {
+    return state.copyWith(status: BucketStatus.success).toJson();
+  }
 
   @override
   Future<void> close() async {
@@ -169,7 +171,8 @@ class BucketBloc extends HydratedBloc<BucketEvent, BucketState> {
       if (state.status == BucketStatus.success) {
         final syncHistoryResult = await _syncHistoryUseCase.call(null);
         if (syncHistoryResult.isLeft()) {
-          throw (syncHistoryResult as Left<Failure, List<OperationEntity>>);
+          throw (syncHistoryResult as Left<Failure, List<OperationEntity>>)
+              .value;
         }
         final operations =
             (syncHistoryResult as Right<Failure, List<OperationEntity>>).value;
@@ -183,7 +186,18 @@ class BucketBloc extends HydratedBloc<BucketEvent, BucketState> {
       emit(state);
     } catch (e) {
       _logger.e(e);
-      emit(state.copyWith(status: BucketStatus.failure, error: e));
+      if (e is Failure) {
+        emit(state.copyWith(status: BucketStatus.failure, error: e));
+      } else {
+        emit(
+          state.copyWith(
+            status: BucketStatus.failure,
+            error: BlocFailure(
+              e.toString(),
+            ),
+          ),
+        );
+      }
     }
   }
 
@@ -192,19 +206,15 @@ class BucketBloc extends HydratedBloc<BucketEvent, BucketState> {
     Emitter<BucketState> emit,
   ) async {
     try {
-      // final internalProvider = BlockchainProviderManager().internalProvider;
-      // final externalProvider =
-      //     BlockchainProviderManager().authenticatedProvider!;
-
       final isParticipantResult =
           await _checkProviderParticipationUseCase.call();
       if (isParticipantResult.isLeft()) {
-        throw (isParticipantResult as Left<Failure, bool>);
+        throw (isParticipantResult as Left<Failure, bool>).value;
       }
       if (!((isParticipantResult as Right<Failure, bool>).value)) {
         final result = await _requestParticipationUseCase.call();
         if (result.isLeft()) {
-          throw (result as Left<Failure, String>);
+          throw (result as Left<Failure, String>).value;
         }
         emit(state.copyWith(status: BucketStatus.waitingForParticipation));
       } else {
@@ -213,12 +223,12 @@ class BucketBloc extends HydratedBloc<BucketEvent, BucketState> {
           final deviceIsParticipant =
               await _checkDeviceParticipationUseCase.call();
           if (deviceIsParticipant.isLeft()) {
-            throw (deviceIsParticipant as Left<Failure, bool>);
+            throw (deviceIsParticipant as Left<Failure, bool>).value;
           }
           if (!((deviceIsParticipant as Right<Failure, bool>).value)) {
             final result = await _addDeviceParticipationUseCase.call();
             if (result.isLeft()) {
-              throw (result as Left<Failure, String>);
+              throw (result as Left<Failure, String>).value;
             }
             _transactionBloc.add(
               TransactionSubmittedEvent(
@@ -235,7 +245,18 @@ class BucketBloc extends HydratedBloc<BucketEvent, BucketState> {
       }
     } catch (e) {
       _logger.e(e);
-      emit(state.copyWith(status: BucketStatus.failure, error: e));
+      if (e is Failure) {
+        emit(state.copyWith(status: BucketStatus.failure, error: e));
+      } else {
+        emit(
+          state.copyWith(
+            status: BucketStatus.failure,
+            error: BlocFailure(
+              e.toString(),
+            ),
+          ),
+        );
+      }
     }
   }
 
@@ -293,6 +314,7 @@ class BucketBloc extends HydratedBloc<BucketEvent, BucketState> {
                 format: event.format,
                 created: event.created,
                 size: event.size,
+                parents: state.parents,
               ),
             );
           }
@@ -356,7 +378,18 @@ class BucketBloc extends HydratedBloc<BucketEvent, BucketState> {
       );
     } catch (e) {
       _logger.e(e);
-      emit(state.copyWith(status: BucketStatus.failure, error: e));
+      if (e is Failure) {
+        emit(state.copyWith(status: BucketStatus.failure, error: e));
+      } else {
+        emit(
+          state.copyWith(
+            status: BucketStatus.failure,
+            error: BlocFailure(
+              e.toString(),
+            ),
+          ),
+        );
+      }
     }
   }
 
@@ -372,7 +405,7 @@ class BucketBloc extends HydratedBloc<BucketEvent, BucketState> {
           ),
         );
         if (result.isLeft()) {
-          throw (result as Left<Failure, String>);
+          throw (result as Left<Failure, String>).value;
         }
         _transactionBloc.add(
           TransactionSubmittedEvent(
@@ -389,147 +422,141 @@ class BucketBloc extends HydratedBloc<BucketEvent, BucketState> {
       }
     } catch (e) {
       _logger.e(e);
-      emit(state.copyWith(status: BucketStatus.failure, error: e));
+      if (e is Failure) {
+        emit(state.copyWith(status: BucketStatus.failure, error: e));
+      } else {
+        emit(
+          state.copyWith(
+            status: BucketStatus.failure,
+            error: BlocFailure(
+              e.toString(),
+            ),
+          ),
+        );
+      }
     }
   }
-
-  // void _onAddProviderParticipationEvent(
-  //   AddProviderParticipationEvent event,
-  //   Emitter<BucketState> emit,
-  // ) async {
-  //   try {
-  //     final internalProvider = BlockchainProviderManager().internalProvider;
-  //     final deviceIsParticipant = await _checkDeviceParticipationUseCase.call();
-  //     if (deviceIsParticipant.isLeft()) {
-  //       throw (deviceIsParticipant as Left<Failure, bool>);
-  //     }
-  //     if (!((deviceIsParticipant as Right<Failure, bool>).value)) {
-  //       final result = await _requestParticipationUseCase.call(
-  //         internalProvider,
-  //       );
-  //       if (result.isLeft()) {
-  //         throw (result as Left<Failure, String>);
-  //       }
-  //       emit(state.copyWith(status: BucketStatus.waitingForParticipation));
-  //     } else {
-  //       emit(state.copyWith(status: BucketStatus.initialized));
-  //     }
-  //   } catch (e) {
-  //     _logger.e(e);
-  //     // emit(BucketError(e));
-  //     emit(state.copyWith(status: BucketStatus.failure, error: e));
-  //   }
-  // }
-
-  // void _onAcceptDeviceParticipationEvent(
-  //   AcceptDeviceParticipationEvent event,
-  //   Emitter<BucketState> emit,
-  // ) async {
-  //   try {
-  //     final providerIsParticipant =
-  //         await _checkProviderParticipationUseCase.call();
-  //     if (providerIsParticipant.isLeft()) {
-  //       throw (providerIsParticipant as Left<Failure, bool>);
-  //     }
-  //     if ((providerIsParticipant as Right<Failure, bool>).value) {
-  //       final result = await _acceptParticipationUseCase.call(
-  //         AcceptParticipationUseCaseParams(
-  //           BlockchainProviderManager().authenticatedProvider!,
-  //           BlockchainProviderManager().internalProvider.getAccount(),
-  //           BlockchainProviderManager().internalProvider.getPublicKeyHex(),
-  //         ),
-  //       );
-  //       if (result.isLeft()) {
-  //         throw (result as Left<Failure, String>);
-  //       }
-  //       _transactionBloc.add(
-  //         TransactionSubmittedEvent(
-  //             transactionHash: (result as Right<Failure, String>).value),
-  //       );
-  //     } else {
-  //       _logger.d(
-  //         "External provider can not accept request of internal provider / device: Missing participation",
-  //       );
-  //     }
-  //   } catch (e) {
-  //     _logger.e(e);
-  //     emit(state.copyWith(status: BucketStatus.failure, error: e));
-  //   }
-  // }
 
   void _onGetElementsEvent(
     GetElementsEvent event,
     Emitter<BucketState> emit,
   ) async {
     try {
+      List<FullElementEntity> parents = event.parents
+          .where((element) => element.element.dataHash == "")
+          .toList();
+      if (event.parents.isNotEmpty &&
+          event.parents.last.element.dataHash != "") {
+        _logger.d("Selected parent is not a container.");
+        return;
+      }
+
       emit(
         state.copyWith(
           status: BucketStatus.loading,
           parents: event.parents,
         ),
       );
-      final syncHistoryResult = await _syncHistoryUseCase.call(null);
+      final syncHistoryResult = await _syncHistoryUseCase.call();
       if (syncHistoryResult.isLeft()) {
-        throw (syncHistoryResult as Left<Failure, List<OperationEntity>>);
+        throw (syncHistoryResult as Left<Failure, List<OperationEntity>>).value;
       }
       final operations =
           (syncHistoryResult as Right<Failure, List<OperationEntity>>).value;
-      final syncElementsResult = await _syncElementsUseCase
-          .call(SyncElementsUseCaseParams(true, false));
-      if (syncElementsResult.isLeft()) {
-        final failure = (syncElementsResult as Left<Failure, int>).value;
-        if (failure.runtimeType == MissingKeyFailure) {
-          _logger.e(
-            "Inconsitency found! Missing key for block #${(failure as MissingKeyFailure).block} and participant ${failure.address}",
-          );
-          throw failure;
-        } else {
-          throw failure;
-        }
-      }
-      final count = (syncElementsResult as Right<Failure, int>).value;
       if (operations.isEmpty) {
         _logger.d("No elements to sync.");
       } else {
+        final syncElementsResult = await _syncElementsUseCase
+            .call(SyncElementsUseCaseParams(true, false));
+        if (syncElementsResult.isLeft()) {
+          final failure = (syncElementsResult as Left<Failure, int>).value;
+          if (failure.runtimeType == MissingKeyFailure) {
+            _logger.e(
+              "Inconsitency found! Missing key for block #${(failure as MissingKeyFailure).block} and participant ${failure.address}",
+            );
+            throw failure;
+          } else {
+            throw failure;
+          }
+        }
+        final count = (syncElementsResult as Right<Failure, int>).value;
+
         if (count == 0) {
           throw Exception("Nothing was synced!");
         }
-      }
-      _logger.d("Found $count element(s).");
-
-      FullElementEntity? parent;
-      if (event.parents.isNotEmpty) {
-        if (event.parents.last.element.dataHash == "") {
-          parent = event.parents.last;
-        } else {
-          _logger.d("Selected parent is not a container.");
-        }
+        _logger.d("Updated $count element(s).");
       }
 
       final fullElementsResult = await _getFullElementsUseCase
-          .call(GetFullElementsUseCaseParams(false, parent));
+          .call(GetFullElementsUseCaseParams(false, parents));
       if (fullElementsResult.isLeft()) {
-        throw (fullElementsResult as Left<Failure, List<FullElementEntity>>);
+        throw (fullElementsResult as Left<Failure, List<FullElementEntity>>)
+            .value;
       }
       final fullElements =
           (fullElementsResult as Right<Failure, List<FullElementEntity>>).value;
       await _setupElementListeners(fullElements);
 
-      final activeRequests = await _getActiveRequestsUseCase.call();
-      if (activeRequests.isLeft()) {
-        throw (activeRequests as Left<Failure, List<EthereumAddress>>);
-      }
       emit(
         state.copyWith(
           status: BucketStatus.success,
+          parents: parents,
           elements: fullElements,
+        ),
+      );
+      add(const GetRequestsEvent());
+    } catch (e) {
+      _logger.e(e);
+      if (e is Failure) {
+        emit(state.copyWith(status: BucketStatus.failure, error: e));
+      } else {
+        emit(
+          state.copyWith(
+            status: BucketStatus.failure,
+            error: BlocFailure(
+              e.toString(),
+            ),
+          ),
+        );
+      }
+    }
+  }
+
+  void _onGetRequestsEvent(
+    GetRequestsEvent event,
+    Emitter<BucketState> emit,
+  ) async {
+    try {
+      final activeRequests = await _getActiveRequestsUseCase.call();
+      if (activeRequests.isLeft()) {
+        throw (activeRequests as Left<Failure, List<EthereumAddress>>).value;
+      }
+      emit(
+        state.copyWith(
+          status: BucketStatus.loading,
+        ),
+      );
+      emit(
+        state.copyWith(
+          status: BucketStatus.success,
           requestors:
               (activeRequests as Right<Failure, List<EthereumAddress>>).value,
         ),
       );
     } catch (e) {
       _logger.e(e);
-      emit(state.copyWith(status: BucketStatus.failure, error: e));
+      if (e is Failure) {
+        emit(state.copyWith(status: BucketStatus.failure, error: e));
+      } else {
+        emit(
+          state.copyWith(
+            status: BucketStatus.failure,
+            error: BlocFailure(
+              e.toString(),
+            ),
+          ),
+        );
+      }
     }
   }
 
@@ -538,6 +565,8 @@ class BucketBloc extends HydratedBloc<BucketEvent, BucketState> {
     Emitter<BucketState> emit,
   ) async {
     try {
+      _logger.d("Creating keys for new element ${event.event.name}");
+
       emit(
         state.copyWith(
           status: BucketStatus.loading,
@@ -545,9 +574,10 @@ class BucketBloc extends HydratedBloc<BucketEvent, BucketState> {
       );
       final keyResult = await _createKeysUseCase.call();
       if (keyResult.isLeft()) {
-        throw (keyResult as Left<Failure, KeyCreation?>);
+        throw (keyResult as Left<Failure, KeyCreation?>).value;
       }
       if ((keyResult as Right<Failure, KeyCreation?>).value == null) {
+        _logger.d("Keys are up to date. Proceeding with creation.");
         emit(
           state.copyWith(
             status: BucketStatus.ready,
@@ -556,6 +586,7 @@ class BucketBloc extends HydratedBloc<BucketEvent, BucketState> {
         );
         return;
       }
+      _logger.d("Keys submitted. Waiting for confirmation.");
       _transactionBloc.add(
         TransactionSubmittedEvent(transactionHash: keyResult.value!.txHash),
       );
@@ -568,7 +599,18 @@ class BucketBloc extends HydratedBloc<BucketEvent, BucketState> {
       );
     } catch (e) {
       _logger.e(e);
-      emit(state.copyWith(status: BucketStatus.failure, error: e));
+      if (e is Failure) {
+        emit(state.copyWith(status: BucketStatus.failure, error: e));
+      } else {
+        emit(
+          state.copyWith(
+            status: BucketStatus.failure,
+            error: BlocFailure(
+              e.toString(),
+            ),
+          ),
+        );
+      }
     }
   }
 
@@ -577,6 +619,7 @@ class BucketBloc extends HydratedBloc<BucketEvent, BucketState> {
     Emitter<BucketState> emit,
   ) async {
     try {
+      _logger.d("Creating element: ${event.name}.");
       final creationResult = await _createElementUseCase.call(
         CreateElementUseCaseParams(
           event.data,
@@ -587,11 +630,11 @@ class BucketBloc extends HydratedBloc<BucketEvent, BucketState> {
             event.created,
             event.size,
           ),
-          zeroAddress,
+          event.parents,
         ),
       );
       if (creationResult.isLeft()) {
-        throw (creationResult as Left<Failure, String>);
+        throw (creationResult as Left<Failure, String>).value;
       }
       final txHash = (creationResult as Right<Failure, String>).value;
 
@@ -600,7 +643,18 @@ class BucketBloc extends HydratedBloc<BucketEvent, BucketState> {
       );
     } catch (e) {
       _logger.e(e);
-      emit(state.copyWith(status: BucketStatus.failure, error: e));
+      if (e is Failure) {
+        emit(state.copyWith(status: BucketStatus.failure, error: e));
+      } else {
+        emit(
+          state.copyWith(
+            status: BucketStatus.failure,
+            error: BlocFailure(
+              e.toString(),
+            ),
+          ),
+        );
+      }
     }
   }
 

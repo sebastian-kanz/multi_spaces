@@ -44,19 +44,19 @@ Future<void> main() async {
         : await getApplicationSupportDirectory(),
   );
 
-  await initDeepLinks();
+  final initialAppLink = await getInitialAppLink();
   BlockchainProviderManager().providers = await setupProviders();
 
   if (!kIsWeb) {
     final root = await getApplicationDocumentsDirectory();
-    final path = '${root.path}/multi_spaces';
+    final path = '${root.path}/database';
     Hive
       ..init(path)
       ..registerAdapter(EthereumAddressAdapter());
   }
 
   runApp(
-    const App(),
+    App(appLink: initialAppLink),
   );
 }
 
@@ -71,17 +71,7 @@ Future<List<BlockchainProvider>> setupProviders() async {
   return providers;
 }
 
-Future<void> initDeepLinks() async {
+Future<Uri?> getInitialAppLink() async {
   final appLinks = AppLinks();
-
-  // Check initial link if app was in cold state (terminated)
-  final appLink = await appLinks.getInitialAppLink();
-  if (appLink != null) {
-    print('getInitialAppLink: $appLink');
-  }
-
-  // Handle link when app is in warm state (front or background)
-  final linkSubscription = appLinks.uriLinkStream.listen((uri) {
-    print('onAppLink: $uri');
-  });
+  return appLinks.getInitialAppLink();
 }

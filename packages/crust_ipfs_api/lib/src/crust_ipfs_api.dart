@@ -50,8 +50,13 @@ class CrustIpfsApi extends IpfsApi {
           .add(http.MultipartFile.fromBytes('data', data, filename: 'data'));
       final addResponse =
           await http.Response.fromStream(await _client.send(addRequest));
-
-      final addJson = jsonDecode(addResponse.body);
+      dynamic addJson;
+      try {
+        addJson = jsonDecode(addResponse.body);
+      } catch (e) {
+        print(e);
+        rethrow;
+      }
 
       final pinResponse = await _client.post(
         Uri.parse('https://pin.crustcode.com/psa/pins'),
@@ -66,8 +71,13 @@ class CrustIpfsApi extends IpfsApi {
         },
       );
 
-      final pinJson = jsonDecode(pinResponse.body);
-      return pinJson['pin']['cid'];
+      try {
+        final pinJson = jsonDecode(pinResponse.body);
+        return pinJson['pin']['cid'];
+      } catch (e) {
+        print(e);
+        rethrow;
+      }
     } catch (e) {
       _logger.e('Error pinning data to IPFS', e);
       rethrow;

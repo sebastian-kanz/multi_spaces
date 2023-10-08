@@ -6,6 +6,7 @@ import 'package:multi_spaces/bucket/domain/entity/data_entity.dart';
 import 'package:multi_spaces/bucket/domain/repository/data_repository.dart';
 import 'package:multi_spaces/bucket/domain/repository/ipfs_vault_repository.dart';
 import 'package:multi_spaces/core/error/failures.dart';
+import 'package:web3dart/web3dart.dart';
 
 class DataRepositoryImpl implements DataRepository {
   final IPFSVaultRepository _ipfsVaultRepository;
@@ -18,42 +19,76 @@ class DataRepositoryImpl implements DataRepository {
 
   @override
   Future<DataEntity> getData(
-    String dataHash, {
+    String dataHash,
+    String name,
+    List<String> parents, {
     int? creationBlockNumber,
     bool sync = false,
   }) async {
     if (dataHash.isEmpty) {
-      return DataEntity(dataHash, File(""));
+      final exists = await _fileStorageRepository.exists(name, parents);
+      Directory dir;
+      if (!exists) {
+        dir = await _fileStorageRepository.createDirectory(name, parents);
+      } else {
+        dir = await _fileStorageRepository.getDirectoryy(name, parents);
+      }
+      return DataEntity(dataHash, dir);
     }
-    final exists = await _fileStorageRepository.exists(dataHash);
+
+    final exists = await _fileStorageRepository.exists(name, parents);
     File file;
     if (!exists) {
       if (!sync) {
         return DataEntity.unsynced(dataHash);
       }
-      final ipfsObject = await _ipfsVaultRepository.get(dataHash,
-          creationBlockNumber: creationBlockNumber);
-      file = await _fileStorageRepository.store(ipfsObject, dataHash);
+      final ipfsObject = await _ipfsVaultRepository.get(
+        dataHash,
+        creationBlockNumber: creationBlockNumber,
+      );
+      file = await _fileStorageRepository.store(ipfsObject, name, parents);
     } else {
-      file = await _fileStorageRepository.get(dataHash);
+      file = await _fileStorageRepository.get(name, parents);
     }
     return DataEntity(dataHash, file);
   }
 
   @override
-  Future<DataEntity> createData(Uint8List data,
-      {int? creationBlockNumber}) async {
-    final dataHash = await _ipfsVaultRepository.store(
-      data,
-      creationBlockNumber: creationBlockNumber,
-    );
-    final file = await _fileStorageRepository.store(data, dataHash);
-    return DataEntity(dataHash, file);
+  Future<DataEntity> createData(
+    Uint8List data,
+    String name,
+    List<String> parents, {
+    int? creationBlockNumber,
+  }) async {
+    String dataHash = "";
+    if (data.isNotEmpty) {
+      final exists = await _fileStorageRepository.exists(name, parents);
+      if (exists) {
+        throw RepositoryFailure("File $name already exists!");
+      }
+      dataHash = await _ipfsVaultRepository.store(
+        data,
+        creationBlockNumber: creationBlockNumber,
+      );
+      final file = await _fileStorageRepository.store(data, name, parents);
+      return DataEntity(dataHash, file);
+    }
+    final exists = await _fileStorageRepository.exists(name, parents);
+    if (exists) {
+      throw RepositoryFailure("Directory $name already exists!");
+    }
+    final dir = await _fileStorageRepository.createDirectory(name, parents);
+    return DataEntity(dataHash, dir);
   }
 
   @override
-  Future<void> removeData(String dataHash, String containerHash) {
-    // TODO: implement removeData
+  Future<void> removeData(
+    String name,
+    List<String> parents,
+  ) async {
+    // TODO:
+    final exists = await _fileStorageRepository.exists(name, parents);
+    if (exists) {}
     throw UnimplementedError();
   }
 }

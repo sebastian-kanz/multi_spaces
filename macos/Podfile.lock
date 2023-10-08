@@ -1,4 +1,6 @@
 PODS:
+  - app_links (1.0.0):
+    - FlutterMacOS
   - connectivity_plus_macos (0.0.1):
     - FlutterMacOS
     - ReachabilitySwift
@@ -20,6 +22,7 @@ PODS:
     - FlutterMacOS
 
 DEPENDENCIES:
+  - app_links (from `Flutter/ephemeral/.symlinks/plugins/app_links/macos`)
   - connectivity_plus_macos (from `Flutter/ephemeral/.symlinks/plugins/connectivity_plus_macos/macos`)
   - cryptography_flutter (from `Flutter/ephemeral/.symlinks/plugins/cryptography_flutter/macos`)
   - flutter_secure_storage_macos (from `Flutter/ephemeral/.symlinks/plugins/flutter_secure_storage_macos/macos`)
@@ -34,6 +37,8 @@ SPEC REPOS:
     - ReachabilitySwift
 
 EXTERNAL SOURCES:
+  app_links:
+    :path: Flutter/ephemeral/.symlinks/plugins/app_links/macos
   connectivity_plus_macos:
     :path: Flutter/ephemeral/.symlinks/plugins/connectivity_plus_macos/macos
   cryptography_flutter:
@@ -52,6 +57,7 @@ EXTERNAL SOURCES:
     :path: Flutter/ephemeral/.symlinks/plugins/url_launcher_macos/macos
 
 SPEC CHECKSUMS:
+  app_links: 4481ed4d71f384b0c3ae5016f4633aa73d32ff67
   connectivity_plus_macos: f6e86fd000e971d361e54b5afcadc8c8fa773308
   cryptography_flutter: c9fa581b52e6fe19475432b6f44489c387f61e19
   flutter_secure_storage_macos: 75c8cadfdba05ca007c0fa4ea0c16e5cf85e521b

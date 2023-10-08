@@ -14,8 +14,8 @@ import '../entity/full_element_entity.dart';
 
 class GetFullElementsUseCaseParams {
   final bool syncData;
-  final FullElementEntity? parent;
-  GetFullElementsUseCaseParams(this.syncData, this.parent);
+  final List<FullElementEntity> parents;
+  GetFullElementsUseCaseParams(this.syncData, this.parents);
 }
 
 class GetFullElementsUseCase
@@ -38,7 +38,8 @@ class GetFullElementsUseCase
   ) async {
     try {
       final allElements = await elementRepository.getLatestChildren(
-          parent: params.parent?.element);
+        parent: params.parents.lastOrNull?.element,
+      );
       final allFullElements =
           await Future.wait(allElements.map((element) async {
         try {
@@ -48,6 +49,8 @@ class GetFullElementsUseCase
           );
           final data = await dataRepository.getData(
             element.dataHash,
+            meta.name,
+            params.parents.map((e) => e.meta.name).toList(),
             creationBlockNumber: element.created,
           );
           final container =

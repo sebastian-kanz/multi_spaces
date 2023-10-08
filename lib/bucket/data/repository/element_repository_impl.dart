@@ -190,7 +190,8 @@ class ElementRepositoryImpl
     if (parent != null) {
       children = latest
           .where((element) =>
-              element.hasParent() && element.parentElement == parent.element)
+              element.hasParent() &&
+              element.parentElement.hex == parent.element.hex)
           .toList();
     } else {
       children = latest.where((element) => !element.hasParent()).toList();

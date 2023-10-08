@@ -13,9 +13,7 @@ class SyncHistoryUseCase implements UseCase<List<OperationEntity>, void> {
   SyncHistoryUseCase(this.historyRepository);
 
   @override
-  Future<Either<Failure, List<OperationEntity>>> call(
-    void params,
-  ) async {
+  Future<Either<Failure, List<OperationEntity>>> call([void params]) async {
     try {
       final localHistory = await historyRepository.getHistory();
       final remoteHistory = await historyRepository.getRemoteHistory();

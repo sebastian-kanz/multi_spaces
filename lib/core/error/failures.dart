@@ -22,4 +22,16 @@ class MissingKeyFailure extends Failure {
 
 class UseCaseFailure extends Failure {
   const UseCaseFailure(failure) : super(failure);
+
+  factory UseCaseFailure.fromJson(Map<String, dynamic> json) => UseCaseFailure(
+        json['failure'],
+      );
+
+  Map<String, dynamic> toJson() => {
+        'failure': failure,
+      };
+}
+
+class BlocFailure extends Failure {
+  const BlocFailure(failure) : super(failure);
 }

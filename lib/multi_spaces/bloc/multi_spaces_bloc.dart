@@ -167,7 +167,8 @@ class MultiSpacesBloc extends HydratedBloc<MultiSpacesEvent, MultiSpaceState> {
         }
       }
 
-      final transactionHash = await _multiSpacesRepository.createSpace();
+      final transactionHash =
+          await _multiSpacesRepository.createSpace(event.name);
       _logger.i("Transaction $transactionHash submitted.");
       emit(SpaceCreationInProgress(transactionHash));
     } catch (e) {

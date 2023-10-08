@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:multi_spaces/bucket/presentation/screens/bucket_page.dart';
@@ -11,6 +12,8 @@ import 'package:multi_spaces/space/repository/space_repository.dart';
 import 'package:multi_spaces/core/widgets/nav_drawer.dart';
 import 'package:multi_spaces/transaction/bloc/transaction_bloc.dart';
 import 'package:provider/provider.dart';
+import 'package:qr_flutter/qr_flutter.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:simple_gradient_text/simple_gradient_text.dart';
 import 'package:web3dart/web3dart.dart';
 
@@ -130,6 +133,8 @@ class _SpacePageViewState extends State<SpacePageView> {
                         scrollDirection: Axis.vertical,
                         itemCount: (state as SpaceInitialized).buckets.length,
                         itemBuilder: (BuildContext context, int index) {
+                          final bucketLink =
+                              "multispaces://www.multi-spaces.eth/buckets/add/${state.buckets[index].address}";
                           return Card(
                             child: Slidable(
                               key: const ValueKey(1),
@@ -143,7 +148,48 @@ class _SpacePageViewState extends State<SpacePageView> {
                                     backgroundColor:
                                         Theme.of(context).colorScheme.primary,
                                     icon: Icons.share,
-                                    fct: (context) => print("Share"),
+                                    fct: (context) => showModalBottomSheet(
+                                      context: context,
+                                      builder: (context) {
+                                        return Padding(
+                                          padding: const EdgeInsets.all(16),
+                                          child: Wrap(
+                                            alignment: WrapAlignment.center,
+                                            children: [
+                                              QrImageView(
+                                                data: bucketLink,
+                                                padding:
+                                                    const EdgeInsets.all(80),
+                                                eyeStyle: QrEyeStyle(
+                                                  eyeShape: QrEyeShape.square,
+                                                  color: Theme.of(context)
+                                                      .colorScheme
+                                                      .primary,
+                                                ),
+                                                dataModuleStyle:
+                                                    QrDataModuleStyle(
+                                                  dataModuleShape:
+                                                      QrDataModuleShape.square,
+                                                  color: Theme.of(context)
+                                                      .colorScheme
+                                                      .primary,
+                                                ),
+                                              ),
+                                              const SizedBox(height: 20),
+                                              IconButton(
+                                                icon: const Icon(Icons.share),
+                                                onPressed: () {
+                                                  Share.share(
+                                                    bucketLink,
+                                                  );
+                                                  Navigator.pop(context);
+                                                },
+                                              ),
+                                            ],
+                                          ),
+                                        );
+                                      },
+                                    ),
                                     label: 'Share',
                                   ),
                                 ],

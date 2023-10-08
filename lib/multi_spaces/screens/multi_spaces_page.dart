@@ -1,3 +1,4 @@
+import 'package:blockchain_provider/blockchain_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -313,7 +314,14 @@ class MultiSpacesPage extends StatelessWidget {
                     icon: const Icon(Icons.add),
                     label: const Text('Create a Space'),
                     onPressed: () {
-                      multiSpacesBloc.add(const CreateSpacePressed());
+                      multiSpacesBloc.add(
+                        CreateSpacePressed(
+                          BlockchainProviderManager()
+                              .authenticatedProvider!
+                              .getAccount()
+                              .hex,
+                        ),
+                      );
                     },
                   );
                 } else {

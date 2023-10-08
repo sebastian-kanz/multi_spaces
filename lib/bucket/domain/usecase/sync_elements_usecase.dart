@@ -7,7 +7,9 @@ import 'package:multi_spaces/bucket/domain/repository/data_repository.dart';
 import 'package:multi_spaces/bucket/domain/repository/element_repository.dart';
 import 'package:multi_spaces/bucket/domain/repository/history_repository.dart';
 import 'package:multi_spaces/bucket/domain/repository/meta_repository.dart';
+import 'package:multi_spaces/core/constants.dart';
 import 'package:multi_spaces/core/error/failures.dart';
+import 'package:web3dart/web3dart.dart';
 
 import '../../../core/usecases/usecase.dart';
 
@@ -32,6 +34,26 @@ class SyncElementsUseCase implements UseCase<int, SyncElementsUseCaseParams> {
     this.elementRepository,
   );
 
+  Future<List<String>> _getNamesRecursive(EthereumAddress parentAdr) async {
+    if (parentAdr.hex == zeroAddress.hex) {
+      return [];
+    }
+    final parent = await elementRepository.getElementEntity(
+      parentAdr,
+    );
+    final parentMeta = await metaRepository.getMeta(
+      parent.metaHash,
+      creationBlockNumber: parent.created,
+    );
+    if (parent.parentElement.hex == zeroAddress.hex) {
+      return [parentMeta.name];
+    }
+    return [
+      parentMeta.name,
+      ...await _getNamesRecursive(parent.parentElement),
+    ];
+  }
+
   @override
   Future<Either<Failure, int>> call(
     SyncElementsUseCaseParams params,
@@ -42,12 +64,13 @@ class SyncElementsUseCase implements UseCase<int, SyncElementsUseCaseParams> {
         final element = await elementRepository.getElementEntity(
           operation.element,
         );
+        final parents = await _getNamesRecursive(element.parentElement);
         try {
           switch (operation.operationType) {
             case OperationType.add:
               await containerRepository.getContainer(element.containerHash,
                   sync: true);
-              await metaRepository.getMeta(
+              final meta = await metaRepository.getMeta(
                 element.metaHash,
                 creationBlockNumber: element.created,
                 sync: true,
@@ -55,6 +78,8 @@ class SyncElementsUseCase implements UseCase<int, SyncElementsUseCaseParams> {
               if (params.syncData) {
                 await dataRepository.getData(
                   element.dataHash,
+                  meta.name,
+                  parents,
                   creationBlockNumber: element.created,
                   sync: true,
                 );
@@ -68,7 +93,7 @@ class SyncElementsUseCase implements UseCase<int, SyncElementsUseCaseParams> {
                 nextElement.containerHash,
                 sync: true,
               );
-              await metaRepository.getMeta(
+              final meta = await metaRepository.getMeta(
                 nextElement.metaHash,
                 creationBlockNumber: nextElement.created,
                 sync: true,
@@ -76,6 +101,8 @@ class SyncElementsUseCase implements UseCase<int, SyncElementsUseCaseParams> {
               if (params.syncData) {
                 await dataRepository.getData(
                   nextElement.dataHash,
+                  meta.name,
+                  parents,
                   creationBlockNumber: nextElement.created,
                   sync: true,
                 );
@@ -87,7 +114,7 @@ class SyncElementsUseCase implements UseCase<int, SyncElementsUseCaseParams> {
               );
               await containerRepository.getContainer(parent.containerHash,
                   sync: true);
-              await metaRepository.getMeta(
+              final meta = await metaRepository.getMeta(
                 parent.metaHash,
                 creationBlockNumber: parent.created,
                 sync: true,
@@ -95,6 +122,8 @@ class SyncElementsUseCase implements UseCase<int, SyncElementsUseCaseParams> {
               if (params.syncData) {
                 await dataRepository.getData(
                   parent.dataHash,
+                  meta.name,
+                  parents,
                   creationBlockNumber: parent.created,
                   sync: true,
                 );
@@ -102,9 +131,14 @@ class SyncElementsUseCase implements UseCase<int, SyncElementsUseCaseParams> {
               break;
             case OperationType.delete:
               if (params.deleteData) {
+                final meta = await metaRepository.getMeta(
+                  element.metaHash,
+                  creationBlockNumber: element.created,
+                  sync: true,
+                );
                 await dataRepository.removeData(
-                  element.dataHash,
-                  element.containerHash,
+                  meta.name,
+                  parents,
                 );
               }
               break;

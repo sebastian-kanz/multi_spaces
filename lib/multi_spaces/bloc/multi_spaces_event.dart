@@ -12,7 +12,8 @@ class MultiSpacesStarted extends MultiSpacesEvent {
 }
 
 class CreateSpacePressed extends MultiSpacesEvent {
-  const CreateSpacePressed();
+  final String name;
+  const CreateSpacePressed(this.name);
 }
 
 class InternetConnectionLost extends MultiSpacesEvent {

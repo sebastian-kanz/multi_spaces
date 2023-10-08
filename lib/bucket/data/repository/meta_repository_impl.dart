@@ -1,10 +1,8 @@
-import 'package:flutter/foundation.dart';
 import 'package:hive/hive.dart';
 import 'package:multi_spaces/bucket/data/mapper/meta_mapper.dart';
 import 'package:multi_spaces/bucket/data/models/meta_model.dart';
 import 'package:multi_spaces/bucket/domain/entity/meta_entity.dart';
 import 'package:multi_spaces/bucket/domain/repository/ipfs_vault_repository.dart';
-import 'package:multi_spaces/core/error/failures.dart';
 import 'package:multi_spaces/core/repository/initializable_storage_repository.dart';
 import 'package:web3dart/crypto.dart';
 import '../../domain/repository/meta_repository.dart';
@@ -32,8 +30,6 @@ class MetaRepositoryImpl
       if (!sync) {
         return MetaEntity.unsynced(metaHash);
       }
-
-      print("AES Getting Meta");
       final ipfsObject = await _ipfsVaultRepository.get(
         metaHash,
         creationBlockNumber: creationBlockNumber,
@@ -74,7 +70,7 @@ class MetaRepositoryImpl
   }
 
   @override
-  Future<void> removeMeta(String metaHash, String containerHash) {
+  Future<void> removeMeta(String metaHash) {
     return box.delete(metaHash);
   }
 

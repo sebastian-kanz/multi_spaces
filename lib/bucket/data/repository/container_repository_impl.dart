@@ -37,8 +37,7 @@ class ContainerRepositoryImpl
 
   @override
   Future<void> removeContainer(String hash) {
-    // TODO: implement removeContainer
-    throw UnimplementedError();
+    return box.delete(hash);
   }
 
   @override

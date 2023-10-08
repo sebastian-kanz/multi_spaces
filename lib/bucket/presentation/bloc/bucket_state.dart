@@ -47,7 +47,7 @@ class BucketState extends Equatable {
     List<FullElementEntity>? parents,
     List<EthereumAddress>? requestors,
     CreateElementEvent? nestedEvent,
-    Object? error,
+    Failure? error,
     int? epoch,
   }) {
     return BucketState(

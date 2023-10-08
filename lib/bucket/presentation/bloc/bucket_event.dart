@@ -132,6 +132,10 @@ class GetElementsEvent extends BucketEvent {
   });
 }
 
+class GetRequestsEvent extends BucketEvent {
+  const GetRequestsEvent();
+}
+
 class CreateElementEvent extends BucketEvent {
   final String name;
   final Uint8List data;
@@ -139,6 +143,7 @@ class CreateElementEvent extends BucketEvent {
   final String format;
   final int created;
   final int size;
+  final List<FullElementEntity> parents;
 
   const CreateElementEvent({
     required this.name,
@@ -147,6 +152,7 @@ class CreateElementEvent extends BucketEvent {
     required this.format,
     required this.created,
     required this.size,
+    required this.parents,
   });
 
   factory CreateElementEvent.fromJson(Map<String, dynamic> json) =>
@@ -157,6 +163,9 @@ class CreateElementEvent extends BucketEvent {
         format: json['format'],
         created: json['created'],
         size: json['size'],
+        parents: (json['parents'] as List<Map<String, dynamic>>)
+            .map((e) => FullElementEntity.fromJson(e))
+            .toList(),
       );
 
   Map<String, dynamic> toJson() => {
@@ -166,6 +175,7 @@ class CreateElementEvent extends BucketEvent {
         'format': format,
         'created': created,
         'size': size,
+        'parents': parents.map((e) => e.toJson()).toList(),
       };
 }
 

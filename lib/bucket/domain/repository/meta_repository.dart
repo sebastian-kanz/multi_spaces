@@ -36,5 +36,5 @@ abstract class MetaRepository {
   Future<MetaEntity> createMeta(CreateMetaDto createMetaDto,
       {int? creationBlockNumber});
   Future<List<MetaEntity>> getAllLocalMetas();
-  Future<void> removeMeta(String metaHash, String containerHash);
+  Future<void> removeMeta(String metaHash);
 }
