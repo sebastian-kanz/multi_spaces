@@ -70,6 +70,10 @@ class CrustIpfsApi extends IpfsApi {
           // "meta": 'meta'
         },
       );
+      if (pinResponse.statusCode >= 400) {
+        print("Could not pin hash ${addJson['Hash']}");
+        return addJson['Hash'];
+      }
 
       try {
         final pinJson = jsonDecode(pinResponse.body);

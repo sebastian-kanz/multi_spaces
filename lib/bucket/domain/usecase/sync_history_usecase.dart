@@ -18,7 +18,8 @@ class SyncHistoryUseCase implements UseCase<List<OperationEntity>, void> {
       final localHistory = await historyRepository.getHistory();
       final remoteHistory = await historyRepository.getRemoteHistory();
       final diff = remoteHistory.length - localHistory.length;
-      if (diff == 0) {
+      var localUnsynced = await historyRepository.getUnsyncedOperations();
+      if (diff == 0 && localUnsynced.isEmpty) {
         return const Right([]);
       }
       final unsynced = remoteHistory.sublist(
@@ -26,7 +27,10 @@ class SyncHistoryUseCase implements UseCase<List<OperationEntity>, void> {
         remoteHistory.length,
       );
       await historyRepository.addHistory(unsynced);
-      return Right(unsynced);
+
+      localUnsynced = await historyRepository.getUnsyncedOperations();
+
+      return Right(localUnsynced);
     } catch (e) {
       return Left(UseCaseFailure('Syncing history failed: $e'));
     }

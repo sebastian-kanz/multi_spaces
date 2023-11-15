@@ -17,14 +17,14 @@ class FullElementEntity {
         ElementEntity.fromJson(json['element']),
         ContainerEntity.fromJson(json['container']),
         MetaEntity.fromJson(json['meta']),
-        data: DataEntity.unsynced(json['data'] ?? ""),
+        data: DataEntity.fromJson(json['data'] ?? ""),
       );
 
   Map<String, dynamic> toJson() => {
         'element': element.toJson(),
         'container': container.toJson(),
         'meta': meta.toJson(),
-        'data': data?.hash,
+        'data': data?.toJson(),
       };
 
   static FullElementEntity unsynced(

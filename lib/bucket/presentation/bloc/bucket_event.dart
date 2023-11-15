@@ -125,6 +125,10 @@ class LoadBucketEvent extends BucketEvent {
   const LoadBucketEvent();
 }
 
+class AccessGrantedEvent extends BucketEvent {
+  const AccessGrantedEvent();
+}
+
 class GetElementsEvent extends BucketEvent {
   final List<FullElementEntity> parents;
   const GetElementsEvent({

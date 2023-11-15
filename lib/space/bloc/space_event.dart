@@ -8,7 +8,8 @@ abstract class SpaceEvent extends Equatable {
 }
 
 class InitSpaceEvent extends SpaceEvent {
-  const InitSpaceEvent();
+  final EthereumAddress? externalBucketToAdd;
+  const InitSpaceEvent({this.externalBucketToAdd});
 }
 
 class GetBucketsEvent extends SpaceEvent {

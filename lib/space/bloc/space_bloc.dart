@@ -97,11 +97,12 @@ class SpaceBloc extends Bloc<SpaceEvent, SpaceState> {
           owner,
           bucketInstances,
           _spaceRepository.getSpaceAddress(),
+          externalBucketToAdd: event.externalBucketToAdd,
         ),
       );
     } catch (e) {
       _logger.e(e);
-      emit(SpaceError(e, state.address));
+      emit(SpaceError(e as Exception, state.address));
     }
   }
 
@@ -120,7 +121,7 @@ class SpaceBloc extends Bloc<SpaceEvent, SpaceState> {
       );
     } catch (e) {
       _logger.e(e);
-      emit(SpaceError(e, state.address));
+      emit(SpaceError(e as Exception, state.address));
     }
   }
 
@@ -157,12 +158,18 @@ class SpaceBloc extends Bloc<SpaceEvent, SpaceState> {
         );
         return;
       }
-      // TODO: if result == "" then user rejected
-      _transactionBloc.add(TransactionSubmittedEvent(transactionHash: result));
+      _transactionBloc.add(
+        TransactionSubmittedEvent(
+          transaction: NamedTransaction(
+            hash: result,
+            description: "Create bucket",
+          ),
+        ),
+      );
       _logger.d('Bucket created: $result');
     } catch (e) {
       _logger.e(e);
-      emit(SpaceError(e, state.address));
+      emit(SpaceError(e as Exception, state.address));
     }
   }
 
@@ -171,15 +178,30 @@ class SpaceBloc extends Bloc<SpaceEvent, SpaceState> {
     Emitter<SpaceState> emit,
   ) async {
     try {
+      _logger.d('Adding external bucket: ${event.bucketName}');
       final result = await _spaceRepository.addExternalBucket(
         event.bucketName,
         event.bucketAddress,
       );
-      _transactionBloc.add(TransactionSubmittedEvent(transactionHash: result));
-      _logger.d('External bucket added: $result');
+      _transactionBloc.add(
+        TransactionSubmittedEvent(
+          transaction: NamedTransaction(
+            hash: result,
+            description: "Add external bucket",
+          ),
+        ),
+      );
+
+      emit(
+        SpaceInitialized(
+          (state as SpaceInitialized).owner,
+          (state as SpaceInitialized).buckets,
+          (state as SpaceInitialized).address,
+        ),
+      );
     } catch (e) {
       _logger.e(e);
-      emit(SpaceError(e, state.address));
+      emit(SpaceError(e as Exception, state.address));
     }
   }
 
@@ -192,11 +214,18 @@ class SpaceBloc extends Bloc<SpaceEvent, SpaceState> {
         event.oldName,
         event.newName,
       );
-      _transactionBloc.add(TransactionSubmittedEvent(transactionHash: result));
+      _transactionBloc.add(
+        TransactionSubmittedEvent(
+          transaction: NamedTransaction(
+            hash: result,
+            description: "Rename bucket",
+          ),
+        ),
+      );
       _logger.d('Bucket renamed: $result');
     } catch (e) {
       _logger.e(e);
-      emit(SpaceError(e, state.address));
+      emit(SpaceError(e as Exception, state.address));
     }
   }
 
@@ -209,11 +238,18 @@ class SpaceBloc extends Bloc<SpaceEvent, SpaceState> {
       final result = await _spaceRepository.removeBucket(
         event.bucketName,
       );
-      _transactionBloc.add(TransactionSubmittedEvent(transactionHash: result));
+      _transactionBloc.add(
+        TransactionSubmittedEvent(
+          transaction: NamedTransaction(
+            hash: result,
+            description: "Remove bucket",
+          ),
+        ),
+      );
       _logger.d('Bucket removed: $result');
     } catch (e) {
       _logger.e(e);
-      emit(SpaceError(e, state.address));
+      emit(SpaceError(e as Exception, state.address));
     }
   }
 }

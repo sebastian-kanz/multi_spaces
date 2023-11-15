@@ -7,8 +7,7 @@ import 'dart:io';
 class FileStorageRepository {
   final String _tenant;
   final String _bucketName;
-  final String _bucketAddress;
-  FileStorageRepository(this._tenant, this._bucketAddress, this._bucketName);
+  FileStorageRepository(this._tenant, this._bucketName);
 
   Future<String> _getRootDir() async {
     final root = await getApplicationDocumentsDirectory();
@@ -55,6 +54,11 @@ class FileStorageRepository {
     List<String> parents,
   ) async {
     final absoluteDir = await _getDirectory(parents);
+    final dir = Directory(absoluteDir);
+    final dirExists = await dir.exists();
+    if (!dirExists) {
+      await dir.create(recursive: true);
+    }
     final file = File('$absoluteDir/$name');
     await file.writeAsBytes(data);
     return file;

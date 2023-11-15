@@ -22,12 +22,15 @@ BucketState _$BucketStateFromJson(Map<String, dynamic> json) => BucketState(
       requestors: json['requestors'] == null
           ? const []
           : _requestorsFromJson(json['requestors'] as List<String>),
+      isExternal: json['isExternal'] as bool? ?? false,
+      participationFulfilled: json['participationFulfilled'] as bool? ?? false,
       nestedEvent: json['nestedEvent'] == null
           ? null
           : CreateElementEvent.fromJson(
               json['nestedEvent'] as Map<String, dynamic>),
-      error: json['error'],
+      error: _errorFromJson(json['error'] as Map<String, dynamic>),
       epoch: json['epoch'] as int?,
+      newElement: json['newElement'] as String? ?? null,
     );
 
 Map<String, dynamic> _$BucketStateToJson(BucketState instance) =>
@@ -36,9 +39,12 @@ Map<String, dynamic> _$BucketStateToJson(BucketState instance) =>
       'elements': instance.elements,
       'parents': instance.parents,
       'requestors': _requestorsToJson(instance.requestors),
+      'isExternal': instance.isExternal,
+      'participationFulfilled': instance.participationFulfilled,
       'nestedEvent': instance.nestedEvent,
-      'error': instance.error,
+      'error': _errorToJson(instance.error),
       'epoch': instance.epoch,
+      'newElement': instance.newElement,
     };
 
 const _$BucketStatusEnumMap = {

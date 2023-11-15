@@ -15,6 +15,8 @@ import 'package:formz/formz.dart';
 class LoginPage extends StatelessWidget {
   const LoginPage({super.key});
 
+  static String routeName = '/login';
+
   @override
   Widget build(BuildContext context) {
     final screenHeight = MediaQuery.of(context).size.height;

@@ -24,7 +24,7 @@ class _Env {
   static const String walletconnect_project_id =
       'cf5dec687ad6486bb5999049a4707c22';
   static const String multi_spaces_contract_address =
-      '0xC159ee7d84169672B36dE3B77d508fcD5045369a';
+      '0xd554f5a7c4c4D0a9641c07Fb54C04B3198e40a2B';
   static const String infura_project_id = '2M18GJ3AnYB8W3LEtWBmWf10hm3';
   static const String infura_api_key = '0d747c5787e22a8bcf5a650f8ede15bf';
   static const String pinata_jwt =

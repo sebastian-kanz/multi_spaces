@@ -18,6 +18,7 @@ import 'package:multi_spaces/bucket/domain/usecase/create_element_usecase.dart';
 import 'package:multi_spaces/bucket/domain/usecase/create_keys_usecase.dart';
 import 'package:multi_spaces/bucket/domain/usecase/get_full_elements_usecase.dart';
 import 'package:multi_spaces/bucket/domain/usecase/get_requests_usecase.dart';
+import 'package:multi_spaces/bucket/domain/usecase/keys_existing_usecase.dart';
 import 'package:multi_spaces/bucket/domain/usecase/listen_bucket_events_usecase.dart';
 import 'package:multi_spaces/bucket/domain/usecase/listen_element_usecase.dart';
 import 'package:multi_spaces/bucket/domain/usecase/listen_key_events_usecase.dart';
@@ -30,6 +31,7 @@ import 'package:multi_spaces/core/env/Env.dart';
 import 'package:multi_spaces/core/error/failures.dart';
 import 'package:multi_spaces/core/utils/logger.util.dart';
 import 'package:multi_spaces/transaction/bloc/transaction_bloc.dart';
+import 'package:open_app_file/open_app_file.dart';
 import 'package:web3dart/crypto.dart';
 import 'package:web3dart/web3dart.dart';
 
@@ -54,6 +56,7 @@ class BucketBloc extends HydratedBloc<BucketEvent, BucketState> {
   final ListenParticipationEventsUseCase _listenParticipationEventsUseCase;
   final GetActiveRequestsUseCase _getActiveRequestsUseCase;
   final AddDeviceParticipationUseCase _addDeviceParticipationUseCase;
+  final KeysExistingUseCase _keysExistingUseCase;
   final TransactionBloc _transactionBloc;
   final _logger = getLogger();
   StreamSubscription? _elementEventsSubscription;
@@ -84,6 +87,7 @@ class BucketBloc extends HydratedBloc<BucketEvent, BucketState> {
     required ListenElementUseCase listenElementUseCase,
     required ListenParticipationEventsUseCase listenParticipationEventsUseCase,
     required ListenRequestEventsUseCase listenRequestEventsUseCase,
+    required KeysExistingUseCase keysExistingUseCase,
     required TransactionBloc transactionBloc,
     required String bucketName,
     required String tenant,
@@ -105,20 +109,20 @@ class BucketBloc extends HydratedBloc<BucketEvent, BucketState> {
         _listenElementUseCase = listenElementUseCase,
         _listenParticipationEventsUseCase = listenParticipationEventsUseCase,
         _listenRequestEventsUseCase = listenRequestEventsUseCase,
+        _keysExistingUseCase = keysExistingUseCase,
         _transactionBloc = transactionBloc,
         _bucketName = bucketName,
         _tenant = tenant,
         _bucketAddress = bucketAddress,
         _isExternal = isExternal,
-        super(const BucketState()) {
+        super(const BucketState().copyWith(isExternal: isExternal)) {
     on<InitBucketEvent>(_onInitBucketEvent);
     on<LoadBucketEvent>(_onLoadBucketEvent);
+    on<AccessGrantedEvent>(_onAccessGrantedEvent);
     on<GetElementsEvent>(_onGetElementsEvent);
     on<GetRequestsEvent>(_onGetRequestsEvent);
     on<CreateKeysEvent>(_onCreateKeysEvent);
     on<CreateElementEvent>(_onCreateElementEvent);
-    // on<AddProviderParticipationEvent>(_onAddProviderParticipationEvent);
-    // on<AcceptDeviceParticipationEvent>(_onAcceptDeviceParticipationEvent);
     on<AddRequestorEvent>(_onAddRequestorEvent);
     on<AcceptLatestRequestorEvent>(_onAcceptLatestRequestorEvent);
   }
@@ -134,7 +138,7 @@ class BucketBloc extends HydratedBloc<BucketEvent, BucketState> {
 
   @override
   Map<String, dynamic> toJson(BucketState state) {
-    return state.copyWith(status: BucketStatus.success).toJson();
+    return state.toJson();
   }
 
   @override
@@ -157,16 +161,37 @@ class BucketBloc extends HydratedBloc<BucketEvent, BucketState> {
     }
   }
 
+  Future<bool> _isFullyParticipating() async {
+    final isParticipantResult = await _checkProviderParticipationUseCase.call();
+    if (isParticipantResult.isLeft()) {
+      throw (isParticipantResult as Left<Failure, bool>).value;
+    }
+
+    final deviceIsParticipant = await _checkDeviceParticipationUseCase.call();
+    if (deviceIsParticipant.isLeft()) {
+      throw (deviceIsParticipant as Left<Failure, bool>).value;
+    }
+
+    return (isParticipantResult as Right<Failure, bool>).value &&
+        (deviceIsParticipant as Right<Failure, bool>).value;
+  }
+
+  Future<void> _setupListeners() async {
+    _logger.d("Setting up listeners.");
+    if (state.participationFulfilled) {
+      _setupElementListener();
+      _setupKeyListener();
+      _setupRequestListener();
+    }
+    _setupParticipationListener();
+  }
+
   void _onInitBucketEvent(
     InitBucketEvent event,
     Emitter<BucketState> emit,
   ) async {
     try {
-      _logger.d("Setting up listeners.");
-      _setupElementListener();
-      _setupKeyListener();
-      _setupParticipationListener();
-      _setupRequestListener();
+      await _setupListeners();
 
       if (state.status == BucketStatus.success) {
         final syncHistoryResult = await _syncHistoryUseCase.call(null);
@@ -182,7 +207,31 @@ class BucketBloc extends HydratedBloc<BucketEvent, BucketState> {
           _logger.d("Bucket is out of date. Need to sync.");
           add(GetElementsEvent(parents: state.parents));
         }
+        add(const GetRequestsEvent());
       }
+      if (!state.participationFulfilled) {
+        if (await _isFullyParticipating()) {
+          emit(state.copyWith(participationFulfilled: true));
+        } else if (!state.isExternal) {
+          return add(const LoadBucketEvent());
+        }
+      }
+      if ([
+        BucketStatus.initial,
+        BucketStatus.initialized,
+        BucketStatus.ready,
+      ].contains(state.status)) {
+        // do nothing
+      } else if (state.status == BucketStatus.failure) {
+        add(GetElementsEvent(parents: state.parents));
+      } else if (state.status == BucketStatus.waitingForKeys) {
+        add(CreateKeysEvent(state.nestedEvent!));
+      } else if (state.status == BucketStatus.waitingForParticipation) {
+        add(const LoadBucketEvent());
+      } else if (state.status == BucketStatus.loading) {
+        add(GetElementsEvent(parents: state.parents));
+      }
+
       emit(state);
     } catch (e) {
       _logger.e(e);
@@ -212,13 +261,17 @@ class BucketBloc extends HydratedBloc<BucketEvent, BucketState> {
         throw (isParticipantResult as Left<Failure, bool>).value;
       }
       if (!((isParticipantResult as Right<Failure, bool>).value)) {
+        // TODO: Show explanation to user
+        emit(state.copyWith(status: BucketStatus.loading));
         final result = await _requestParticipationUseCase.call();
         if (result.isLeft()) {
           throw (result as Left<Failure, String>).value;
         }
+        if ((result as Right<Failure, String>).value == "") {
+          throw const BlocFailure("Request ");
+        }
         emit(state.copyWith(status: BucketStatus.waitingForParticipation));
       } else {
-        // TODO: Only if this is my bucket!!!
         if (!_isExternal) {
           final deviceIsParticipant =
               await _checkDeviceParticipationUseCase.call();
@@ -226,16 +279,50 @@ class BucketBloc extends HydratedBloc<BucketEvent, BucketState> {
             throw (deviceIsParticipant as Left<Failure, bool>).value;
           }
           if (!((deviceIsParticipant as Right<Failure, bool>).value)) {
-            final result = await _addDeviceParticipationUseCase.call();
-            if (result.isLeft()) {
-              throw (result as Left<Failure, String>).value;
+            emit(state.copyWith(status: BucketStatus.loading, confirmTx: true));
+            final keyExistingResult = await _keysExistingUseCase.call();
+            if (keyExistingResult.isLeft()) {
+              throw (keyExistingResult as Left<Failure, bool>).value;
             }
-            _transactionBloc.add(
-              TransactionSubmittedEvent(
-                transactionHash: (result as Right<Failure, String>).value,
-              ),
-            );
-            emit(state.copyWith(status: BucketStatus.waitingForParticipation));
+            // No keys were created yet, so we can safely add the device
+            if (!(keyExistingResult as Right<Failure, bool>).value) {
+              // TODO: Show explanation to user
+              final result = await _addDeviceParticipationUseCase.call();
+              if (result.isLeft()) {
+                throw (result as Left<Failure, String>).value;
+              }
+              if ((result as Right<Failure, String>).value == "") {
+                emit(state.copyWith(
+                  status: BucketStatus.failure,
+                  error: const BlocFailure("User rejected."),
+                  confirmTx: false,
+                ));
+                return;
+              }
+              _transactionBloc.add(
+                TransactionSubmittedEvent(
+                  transaction: NamedTransaction(
+                    hash: result.value,
+                    description: "Add device to bucket",
+                  ),
+                ),
+              );
+              emit(state.copyWith(
+                status: BucketStatus.waitingForParticipation,
+                confirmTx: false,
+              ));
+            } else {
+              // Some keys were already created, so we need to request device participation. Some other device need to accept and add the keys
+              // TODO: Show explanation to user
+              final result = await _requestParticipationUseCase.call();
+              if (result.isLeft()) {
+                throw (result as Left<Failure, String>).value;
+              }
+              emit(state.copyWith(
+                status: BucketStatus.waitingForParticipation,
+                confirmTx: false,
+              ));
+            }
           } else {
             emit(state.copyWith(status: BucketStatus.initialized));
           }
@@ -262,7 +349,7 @@ class BucketBloc extends HydratedBloc<BucketEvent, BucketState> {
 
   Future<void> _setupElementListener() async {
     final listenElementsResult = await _listenElementsInBucketUseCase.call();
-    _elementEventsSubscription = listenElementsResult.listen(
+    _elementEventsSubscription ??= listenElementsResult.listen(
       (elementEvent) {
         switch (elementEvent.runtimeType) {
           case CreateElementEventEntity:
@@ -297,7 +384,7 @@ class BucketBloc extends HydratedBloc<BucketEvent, BucketState> {
 
   Future<void> _setupKeyListener() async {
     final listenKeysResult = await _listenKeyEventsUseCase.call();
-    _listenKeyEventsSubscription = listenKeysResult.listen(
+    _listenKeyEventsSubscription ??= listenKeysResult.listen(
       (keyEvent) async {
         if (state.status == BucketStatus.waitingForKeys &&
             state.epoch == keyEvent) {
@@ -330,18 +417,18 @@ class BucketBloc extends HydratedBloc<BucketEvent, BucketState> {
 
     final listenParticipationResult =
         await _listenParticipationEventsUseCase.call();
-    _listenParticipationEventsSubscription = listenParticipationResult.listen(
-      (participationEvent) {
+    _listenParticipationEventsSubscription ??= listenParticipationResult.listen(
+      (participationEvent) async {
         if (state.status == BucketStatus.waitingForParticipation) {
           // Either waiting for device to be accepted or for device and user (which will be accepted together)
           if (participationEvent.hex == internalProvider.getAccount().hex ||
               participationEvent.hex == externalProvider.getAccount().hex) {
-            _logger.d("Access granted.");
+            add(const AccessGrantedEvent());
             add(const GetElementsEvent(parents: []));
           }
         } else {
           _logger.d("Access was granted to ${participationEvent.hex}.");
-          // TODO: Update requestors
+          add(const GetRequestsEvent());
         }
       },
       onError: (error) => _logger.d(error),
@@ -350,7 +437,7 @@ class BucketBloc extends HydratedBloc<BucketEvent, BucketState> {
 
   Future<void> _setupRequestListener() async {
     final listenRequestResult = await _listenRequestEventsUseCase.call();
-    _listenRequestEventsSubscription = listenRequestResult.listen(
+    _listenRequestEventsSubscription ??= listenRequestResult.listen(
       (requestEvent) {
         if (state.status == BucketStatus.waitingForParticipation) {
           _logger.d("Requested access. Waiting for acceptance...");
@@ -398,6 +485,7 @@ class BucketBloc extends HydratedBloc<BucketEvent, BucketState> {
     Emitter<BucketState> emit,
   ) async {
     try {
+      // TODO: Make this more interactive and show to user
       if (state.requestors.isNotEmpty) {
         final result = await _acceptParticipationUseCase.call(
           AcceptParticipationUseCaseParams(
@@ -409,7 +497,11 @@ class BucketBloc extends HydratedBloc<BucketEvent, BucketState> {
         }
         _transactionBloc.add(
           TransactionSubmittedEvent(
-              transactionHash: (result as Right<Failure, String>).value),
+            transaction: NamedTransaction(
+              hash: (result as Right<Failure, String>).value,
+              description: "Accept latest requestor",
+            ),
+          ),
         );
         emit(
           state.copyWith(
@@ -437,17 +529,47 @@ class BucketBloc extends HydratedBloc<BucketEvent, BucketState> {
     }
   }
 
+  void _onAccessGrantedEvent(
+    AccessGrantedEvent event,
+    Emitter<BucketState> emit,
+  ) async {
+    try {
+      _logger.d("Access granted.");
+      emit(state.copyWith(participationFulfilled: true));
+      await _setupListeners();
+    } catch (e) {
+      _logger.e(e);
+      if (e is Failure) {
+        emit(state.copyWith(status: BucketStatus.failure, error: e));
+      } else {
+        emit(
+          state.copyWith(
+            status: BucketStatus.failure,
+            error: BlocFailure(
+              e.toString(),
+            ),
+          ),
+        );
+      }
+    }
+  }
+
   void _onGetElementsEvent(
     GetElementsEvent event,
     Emitter<BucketState> emit,
   ) async {
     try {
+      if (!state.participationFulfilled) {
+        _logger.d("Can not get elements. Please participate first.");
+        return;
+      }
       List<FullElementEntity> parents = event.parents
           .where((element) => element.element.dataHash == "")
           .toList();
       if (event.parents.isNotEmpty &&
           event.parents.last.element.dataHash != "") {
-        _logger.d("Selected parent is not a container.");
+        _logger.d("Selected parent is not a container. Opening file...");
+        await OpenAppFile.open(event.parents.last.data?.entity.path ?? "");
         return;
       }
 
@@ -488,7 +610,7 @@ class BucketBloc extends HydratedBloc<BucketEvent, BucketState> {
       }
 
       final fullElementsResult = await _getFullElementsUseCase
-          .call(GetFullElementsUseCaseParams(false, parents));
+          .call(GetFullElementsUseCaseParams(true, parents));
       if (fullElementsResult.isLeft()) {
         throw (fullElementsResult as Left<Failure, List<FullElementEntity>>)
             .value;
@@ -502,6 +624,7 @@ class BucketBloc extends HydratedBloc<BucketEvent, BucketState> {
           status: BucketStatus.success,
           parents: parents,
           elements: fullElements,
+          newElement: "",
         ),
       );
       add(const GetRequestsEvent());
@@ -570,6 +693,7 @@ class BucketBloc extends HydratedBloc<BucketEvent, BucketState> {
       emit(
         state.copyWith(
           status: BucketStatus.loading,
+          newElement: event.event.name,
         ),
       );
       final keyResult = await _createKeysUseCase.call();
@@ -587,8 +711,14 @@ class BucketBloc extends HydratedBloc<BucketEvent, BucketState> {
         return;
       }
       _logger.d("Keys submitted. Waiting for confirmation.");
+
       _transactionBloc.add(
-        TransactionSubmittedEvent(transactionHash: keyResult.value!.txHash),
+        TransactionSubmittedEvent(
+          transaction: NamedTransaction(
+            hash: keyResult.value!.txHash,
+            description: "Create encryption keys",
+          ),
+        ),
       );
       emit(
         state.copyWith(
@@ -637,9 +767,13 @@ class BucketBloc extends HydratedBloc<BucketEvent, BucketState> {
         throw (creationResult as Left<Failure, String>).value;
       }
       final txHash = (creationResult as Right<Failure, String>).value;
-
       _transactionBloc.add(
-        TransactionSubmittedEvent(transactionHash: txHash),
+        TransactionSubmittedEvent(
+          transaction: NamedTransaction(
+            hash: txHash,
+            description: "Create elements",
+          ),
+        ),
       );
     } catch (e) {
       _logger.e(e);

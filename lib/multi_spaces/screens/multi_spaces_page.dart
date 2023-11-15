@@ -2,32 +2,33 @@ import 'package:blockchain_provider/blockchain_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:multi_spaces/core/utils/input_dialog.dart';
 import 'package:multi_spaces/core/widgets/carousel.dart';
 import 'package:multi_spaces/multi_spaces/bloc/multi_spaces_bloc.dart';
 import 'package:multi_spaces/multi_spaces/repository/multi_spaces_repository.dart';
 import 'package:multi_spaces/payment/bloc/payment_bloc.dart';
-import 'package:multi_spaces/payment/repository/payment_repository.dart';
 import 'package:multi_spaces/space/screens/space_page.dart';
 import 'package:multi_spaces/core/widgets/nav_drawer.dart';
-import 'package:multi_spaces/transaction/bloc/transaction_bloc.dart';
 import 'package:provider/provider.dart';
+import 'package:web3dart/web3dart.dart';
 
 import '../../authentication/authentication.dart';
 
 class MultiSpacesPage extends StatelessWidget {
-  const MultiSpacesPage({super.key});
+  final EthereumAddress? externalBucket;
 
-  static Route route() {
-    return MaterialPageRoute<void>(
-      builder: (_) => RepositoryProvider<MultiSpacesRepository>(
-        create: (context) => MultiSpacesRepository(),
-        child: BlocProvider(
-          create: (context) => MultiSpacesBloc(
-            multiSpacesRepository: context.read<MultiSpacesRepository>(),
-            authenticationBloc: BlocProvider.of<AuthenticationBloc>(context),
-          )..add(const MultiSpacesStarted()),
-          child: const MultiSpacesPage(),
-        ),
+  const MultiSpacesPage({super.key, this.externalBucket});
+
+  static const routeName = '/multispace';
+
+  static Route route({EthereumAddress? externalBucket}) {
+    return MaterialPageRoute<MultiSpacesPage>(
+      builder: (_) => BlocProvider(
+        create: (context) => MultiSpacesBloc(
+          multiSpacesRepository: context.read<MultiSpacesRepository>(),
+          authenticationBloc: BlocProvider.of<AuthenticationBloc>(context),
+        )..add(const MultiSpacesStarted()),
+        child: MultiSpacesPage(externalBucket: externalBucket),
       ),
     );
   }
@@ -141,7 +142,7 @@ class MultiSpacesPage extends StatelessWidget {
                 SizedBox(
                   width: MediaQuery.of(context).size.width / 2,
                   child: const Text(
-                    "For backup and sharing data with your family and friends the IPFS network is used - all data that leaves your device securely encrypted.",
+                    "For backup and sharing data with your family and friends the IPFS network is used - all data that leaves your device is securely encrypted.",
                     maxLines: 5,
                     overflow: TextOverflow.ellipsis,
                     textAlign: TextAlign.justify,
@@ -176,46 +177,35 @@ class MultiSpacesPage extends StatelessWidget {
       bloc: multiSpacesBloc,
       listener: (context, state) {
         if (state.runtimeType == MultiSpacesReady) {
-          Navigator.of(context).pushAndRemoveUntil<void>(
-            MaterialPageRoute<SpacePage>(
-              builder: (_) {
-                return MultiBlocProvider(
-                  providers: [
-                    BlocProvider.value(
-                      value: multiSpacesBloc,
-                    ),
-                    BlocProvider(
-                      create: (context) => TransactionBloc(),
-                    ),
-                    BlocProvider(
-                      lazy: false,
-                      create: (context) {
-                        final multiSpacesState =
-                            BlocProvider.of<MultiSpacesBloc>(
-                          context,
-                        ).state as MultiSpacesReady;
-                        final paymentRepository = PaymentRepository(
-                          multiSpacesState.paymentManagerAddress.hex,
-                        );
-                        return PaymentBloc(
-                          paymentRepository: paymentRepository,
-                          transactionBloc: BlocProvider.of<TransactionBloc>(
-                            context,
-                          ),
-                        );
-                      },
-                    ),
-                  ],
-                  child: const SpacePage(),
-                );
-              },
+          Navigator.pushNamedAndRemoveUntil(
+            context,
+            SpacePage.routeName,
+            (Route<dynamic> route) => false,
+            arguments: SpacePageArguments(
+              (multiSpacesBloc.state as MultiSpacesReady).spaceAddress,
+              (multiSpacesBloc.state as MultiSpacesReady).paymentManagerAddress,
+              externalBucketToAdd: externalBucket,
             ),
-            (route) => false,
           );
         }
       },
       builder: (context, state) {
-        if (state.runtimeType == NoSpaceExisting) {
+        if (state.runtimeType == NoInternetConnectionAvailable) {
+          return const Scaffold(
+            body: Center(
+              child: Text(
+                "Waiting for internet connection...",
+              ),
+            ),
+          );
+        } else if (state.runtimeType == MultiSpacesLoading ||
+            state.runtimeType == SpaceCreationInProgress) {
+          return const Scaffold(
+            body: Center(
+              child: CircularProgressIndicator(),
+            ),
+          );
+        } else {
           final elements = _getCarouselElements(context);
           return Scaffold(
             drawer: const NavDrawer(hidePayment: true),
@@ -313,13 +303,13 @@ class MultiSpacesPage extends StatelessWidget {
                     elevation: 4.0,
                     icon: const Icon(Icons.add),
                     label: const Text('Create a Space'),
-                    onPressed: () {
-                      multiSpacesBloc.add(
-                        CreateSpacePressed(
-                          BlockchainProviderManager()
-                              .authenticatedProvider!
-                              .getAccount()
-                              .hex,
+                    onPressed: () async {
+                      await displayTextInputDialog(
+                        context,
+                        "What's your name?",
+                        "Save",
+                        (val) => multiSpacesBloc.add(
+                          CreateSpacePressed(val),
                         ),
                       );
                     },
@@ -357,20 +347,6 @@ class MultiSpacesPage extends StatelessWidget {
                   ],
                 ),
               ),
-            ),
-          );
-        } else if (state.runtimeType == NoInternetConnectionAvailable) {
-          return const Scaffold(
-            body: Center(
-              child: Text(
-                "Waiting for internet connection...",
-              ),
-            ),
-          );
-        } else {
-          return const Scaffold(
-            body: Center(
-              child: CircularProgressIndicator(),
             ),
           );
         }

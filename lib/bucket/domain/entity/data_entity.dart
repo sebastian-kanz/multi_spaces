@@ -17,4 +17,12 @@ class DataEntity {
     entity.synced = false;
     return entity;
   }
+
+  factory DataEntity.fromJson(Map<String, dynamic> json) =>
+      DataEntity(json['hash'], File(json['path']));
+
+  Map<String, dynamic> toJson() => {
+        'hash': hash,
+        'path': entity.absolute.path,
+      };
 }

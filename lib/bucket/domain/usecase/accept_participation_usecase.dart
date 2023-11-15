@@ -41,6 +41,7 @@ class AcceptParticipationUseCase
       );
       final request =
           await participantRepository.getRequest(participant.address);
+
       final requestorPubkeyHex = bytesToHex(participant.publicKey);
       final device = allParticipants.firstWhere(
         (element) => element.address.hex == request.device.hex,
@@ -52,29 +53,29 @@ class AcceptParticipationUseCase
       //TODO: Problem: adding keys for many epoch leads to many transactions
       for (var i = 0; i < allEpochsCount; i++) {
         final epoch = await bucketRepository.getEpoch(i);
-        // Export key does not work for newly added device (when external providers tries to add internal), as the key does not exist on the new device.
-        // Key management is done by internal not by external provider
-        final keyForParticipant = await ipfsVaultRepository.exportKey(
-          requestorPubkeyHex,
-          blockNumber: await bucketRepository.epochToBlock(epoch),
-        );
         final keyForDevice = await ipfsVaultRepository.exportKey(
           devicePubkeyHex,
           blockNumber: await bucketRepository.epochToBlock(epoch),
-        );
-        final keyCreationParticipant =
-            await bucketRepository.setKeyForParticipant(
-          participant.address,
-          keyForParticipant,
-          epoch,
         );
         final keyCreationDevice = await bucketRepository.setKeyForParticipant(
           device.address,
           keyForDevice,
           epoch,
         );
-        keyCreations.add(keyCreationParticipant);
         keyCreations.add(keyCreationDevice);
+        if (participant.address.hex != device.address.hex) {
+          final keyForParticipant = await ipfsVaultRepository.exportKey(
+            requestorPubkeyHex,
+            blockNumber: await bucketRepository.epochToBlock(epoch),
+          );
+          final keyCreationParticipant =
+              await bucketRepository.setKeyForParticipant(
+            participant.address,
+            keyForParticipant,
+            epoch,
+          );
+          keyCreations.add(keyCreationParticipant);
+        }
       }
 
       final txHash = await bucketRepository.acceptParticipation(

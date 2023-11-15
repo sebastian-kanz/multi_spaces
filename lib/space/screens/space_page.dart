@@ -1,11 +1,11 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:multi_spaces/bucket/presentation/screens/bucket_page.dart';
-import 'package:multi_spaces/multi_spaces/bloc/multi_spaces_bloc.dart';
+import 'package:multi_spaces/core/utils/input_dialog.dart';
+import 'package:multi_spaces/core/widgets/slide_action.dart';
 import 'package:multi_spaces/payment/bloc/payment_bloc.dart';
 import 'package:multi_spaces/space/bloc/space_bloc.dart';
 import 'package:multi_spaces/space/repository/space_repository.dart';
@@ -17,8 +17,31 @@ import 'package:share_plus/share_plus.dart';
 import 'package:simple_gradient_text/simple_gradient_text.dart';
 import 'package:web3dart/web3dart.dart';
 
+class SpacePageArguments {
+  final EthereumAddress spaceAddress;
+  final EthereumAddress paymentManagerAddress;
+  final EthereumAddress? externalBucketToAdd;
+
+  SpacePageArguments(
+    this.spaceAddress,
+    this.paymentManagerAddress, {
+    this.externalBucketToAdd,
+  });
+}
+
 class SpacePage extends StatelessWidget {
-  const SpacePage({super.key});
+  final EthereumAddress spaceAddress;
+  final EthereumAddress paymentManagerAddress;
+  final EthereumAddress? externalBucketToAdd;
+
+  const SpacePage({
+    super.key,
+    required this.spaceAddress,
+    required this.paymentManagerAddress,
+    this.externalBucketToAdd,
+  });
+
+  static const routeName = '/space';
 
   @override
   Widget build(BuildContext context) {
@@ -27,11 +50,7 @@ class SpacePage extends StatelessWidget {
         BlocProvider(
           lazy: false,
           create: (context) {
-            final multiSpacesState = BlocProvider.of<MultiSpacesBloc>(
-              context,
-            ).state as MultiSpacesReady;
-            final address = multiSpacesState.spaceAddress.hex;
-            final spaceRepository = SpaceRepository(address);
+            final spaceRepository = SpaceRepository(spaceAddress.hex);
             return SpaceBloc(
               spaceRepository: spaceRepository,
               transactionBloc: BlocProvider.of<TransactionBloc>(
@@ -40,23 +59,36 @@ class SpacePage extends StatelessWidget {
               paymentBloc: BlocProvider.of<PaymentBloc>(
                 context,
               ),
-            )..add(const InitSpaceEvent());
+            )..add(
+                InitSpaceEvent(
+                  externalBucketToAdd: externalBucketToAdd,
+                ),
+              );
           },
         ),
       ],
-      child: const SpacePageView(),
+      child: SpacePageView(
+        spaceAddress: spaceAddress,
+        paymentManagerAddress: paymentManagerAddress,
+      ),
     );
   }
 }
 
 class SpacePageView extends StatefulWidget {
-  const SpacePageView({super.key});
+  final EthereumAddress spaceAddress;
+  final EthereumAddress paymentManagerAddress;
+  const SpacePageView({
+    super.key,
+    required this.spaceAddress,
+    required this.paymentManagerAddress,
+  });
 
   @override
-  _SpacePageViewState createState() => _SpacePageViewState();
+  SpacePageViewState createState() => SpacePageViewState();
 }
 
-class _SpacePageViewState extends State<SpacePageView> {
+class SpacePageViewState extends State<SpacePageView> {
   final TextEditingController _textFieldController = TextEditingController();
   String newBucketName = "";
 
@@ -70,6 +102,22 @@ class _SpacePageViewState extends State<SpacePageView> {
               account: context.read<SpaceBloc>().state.address,
             ),
           );
+
+          if ((state as SpaceInitialized).externalBucketToAdd != null) {
+            if (state.buckets.indexWhere((element) =>
+                    element.address.hex == state.externalBucketToAdd?.hex) ==
+                -1) {
+              _showAddExternalButtonModal(context, state.externalBucketToAdd!);
+            } else {
+              ScaffoldMessenger.of(context)
+                ..hideCurrentSnackBar()
+                ..showSnackBar(
+                  const SnackBar(
+                    content: Text("Bucket already exists"),
+                  ),
+                );
+            }
+          }
         } else if (state.runtimeType == SpaceError) {
           ScaffoldMessenger.of(context)
             ..hideCurrentSnackBar()
@@ -84,30 +132,42 @@ class _SpacePageViewState extends State<SpacePageView> {
         body: Column(
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
-            Expanded(
-              flex: 1,
+            SizedBox(
+              height: 200,
               child: Container(
                 color: Theme.of(context).splashColor,
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
                     Padding(
-                      padding: EdgeInsets.symmetric(vertical: 32),
+                      padding: const EdgeInsets.symmetric(vertical: 32),
                       child: GradientText(
                         'MultiSpaces',
                         textScaleFactor: 2.5,
-                        colors: [
-                          // Color.fromARGB(255, 216, 68, 27),
+                        colors: const [
                           Color.fromARGB(255, 205, 27, 119),
-                          // Color.fromARGB(255, 10, 92, 151),
                           Color.fromARGB(255, 81, 178, 108),
                         ],
                       ),
                     ),
                     BlocBuilder<TransactionBloc, TransactionState>(
                       builder: (context, state) {
-                        if (state.transactionHashes.isNotEmpty) {
-                          return const LinearProgressIndicator();
+                        if (state.waitingTransactions.isNotEmpty) {
+                          final description =
+                              state.waitingTransactions.first.description;
+                          if (description == null) {
+                            return const LinearProgressIndicator();
+                          }
+                          return Column(
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            children: [
+                              Text(
+                                description,
+                                textScaleFactor: 0.8,
+                              ),
+                              const LinearProgressIndicator(),
+                            ],
+                          );
                         }
                         return Container();
                       },
@@ -117,10 +177,30 @@ class _SpacePageViewState extends State<SpacePageView> {
               ),
             ),
             Expanded(
-              flex: 4,
+              flex: 1,
               child: BlocBuilder<SpaceBloc, SpaceState>(
                 builder: (context, state) {
                   if (state.runtimeType == SpaceInitialized) {
+                    if ((state as SpaceInitialized).buckets.isEmpty) {
+                      return SizedBox(
+                        height: 200,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              "Looks empty here...",
+                              textScaleFactor: 1.3,
+                              style: TextStyle(fontWeight: FontWeight.bold),
+                            ),
+                            Text(
+                              "Click on the button below to add a Bucket.",
+                            ),
+                          ],
+                        ),
+                      );
+                    }
+
                     return RefreshIndicator(
                       onRefresh: () async => Provider.of<SpaceBloc>(
                         context,
@@ -133,117 +213,7 @@ class _SpacePageViewState extends State<SpacePageView> {
                         scrollDirection: Axis.vertical,
                         itemCount: (state as SpaceInitialized).buckets.length,
                         itemBuilder: (BuildContext context, int index) {
-                          final bucketLink =
-                              "multispaces://www.multi-spaces.eth/buckets/add/${state.buckets[index].address}";
-                          return Card(
-                            child: Slidable(
-                              key: const ValueKey(1),
-                              groupTag: '0',
-                              startActionPane: ActionPane(
-                                motion: const BehindMotion(),
-                                children: [
-                                  SlideAction(
-                                    foregroundColor:
-                                        Theme.of(context).colorScheme.onPrimary,
-                                    backgroundColor:
-                                        Theme.of(context).colorScheme.primary,
-                                    icon: Icons.share,
-                                    fct: (context) => showModalBottomSheet(
-                                      context: context,
-                                      builder: (context) {
-                                        return Padding(
-                                          padding: const EdgeInsets.all(16),
-                                          child: Wrap(
-                                            alignment: WrapAlignment.center,
-                                            children: [
-                                              QrImageView(
-                                                data: bucketLink,
-                                                padding:
-                                                    const EdgeInsets.all(80),
-                                                eyeStyle: QrEyeStyle(
-                                                  eyeShape: QrEyeShape.square,
-                                                  color: Theme.of(context)
-                                                      .colorScheme
-                                                      .primary,
-                                                ),
-                                                dataModuleStyle:
-                                                    QrDataModuleStyle(
-                                                  dataModuleShape:
-                                                      QrDataModuleShape.square,
-                                                  color: Theme.of(context)
-                                                      .colorScheme
-                                                      .primary,
-                                                ),
-                                              ),
-                                              const SizedBox(height: 20),
-                                              IconButton(
-                                                icon: const Icon(Icons.share),
-                                                onPressed: () {
-                                                  Share.share(
-                                                    bucketLink,
-                                                  );
-                                                  Navigator.pop(context);
-                                                },
-                                              ),
-                                            ],
-                                          ),
-                                        );
-                                      },
-                                    ),
-                                    label: 'Share',
-                                  ),
-                                ],
-                              ),
-                              endActionPane: ActionPane(
-                                motion: const BehindMotion(),
-                                children: [
-                                  SlideAction(
-                                    foregroundColor:
-                                        Theme.of(context).colorScheme.secondary,
-                                    backgroundColor: Theme.of(context)
-                                        .colorScheme
-                                        .onSecondary,
-                                    icon: Icons.change_circle,
-                                    fct: (_) {
-                                      _displayTextInputDialog(context, 'Rename',
-                                          (String name) {
-                                        Provider.of<SpaceBloc>(
-                                          context,
-                                          listen: false,
-                                        ).add(
-                                          RenameBucketEvent(
-                                            state.buckets[index].name,
-                                            newBucketName,
-                                          ),
-                                        );
-                                      });
-                                    },
-                                    label: 'Rename',
-                                  ),
-                                  SlideAction(
-                                    foregroundColor:
-                                        Theme.of(context).colorScheme.tertiary,
-                                    backgroundColor: Theme.of(context)
-                                        .colorScheme
-                                        .onTertiary,
-                                    icon: Icons.delete_forever,
-                                    fct: (_) {
-                                      context.read<SpaceBloc>().add(
-                                            RemoveBucketEvent(
-                                              state.buckets[index].name,
-                                            ),
-                                          );
-                                    },
-                                    label: 'Delete',
-                                  ),
-                                ],
-                              ),
-                              child: SpaceListTile(
-                                spaceState: state,
-                                index: index,
-                              ),
-                            ),
-                          );
+                          return _getBucketCard(context, index, state);
                         },
                       ),
                     );
@@ -259,29 +229,35 @@ class _SpacePageViewState extends State<SpacePageView> {
         floatingActionButton: InkWell(
           splashColor: Colors.blue,
           onLongPress: () {
-            context.read<SpaceBloc>().add(
-                  AddExternalBucketEvent(
-                    "external${Random.secure().nextInt(999999)}",
-                    EthereumAddress.fromHex(
-                      "0x247272ea3e248055ddc7770b8d28673348fccd1a",
-                    ),
-                  ),
-                );
+            // TODO:
+            print("Open link for new bucket");
           },
           child: FloatingActionButton.extended(
             elevation: 4.0,
             icon: const Icon(Icons.add),
             label: const Text('Add a Bucket'),
-            onPressed: () =>
-                _displayTextInputDialog(context, 'Create', (String name) {
-              context.read<SpaceBloc>().add(
-                    CreateBucketEvent(newBucketName),
-                  );
-            }),
+            onPressed: () async {
+              await displayTextInputDialog(
+                context,
+                'Create Bucket',
+                'Create',
+                (String name) {
+                  context.read<SpaceBloc>().add(
+                        CreateBucketEvent(name),
+                      );
+                },
+              );
+              ScaffoldMessenger.of(context)
+                ..hideCurrentSnackBar()
+                ..showSnackBar(
+                  const SnackBar(
+                    content: Text("Please confirm transaction."),
+                  ),
+                );
+            },
           ),
         ),
         bottomNavigationBar: BottomAppBar(
-          color: Theme.of(context).bottomAppBarColor,
           child: SizedBox(
             height: 60.0,
             child: Row(
@@ -310,60 +286,163 @@ class _SpacePageViewState extends State<SpacePageView> {
     );
   }
 
-  Future<void> _displayTextInputDialog(
-      BuildContext context, String label, Function fct) async {
-    return showDialog(
+  Future<void> _showAddExternalButtonModal(
+      BuildContext context, EthereumAddress externalBucketToAdd) {
+    return showModalBottomSheet(
       context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text('Bucket Name'),
-          actionsAlignment: MainAxisAlignment.spaceBetween,
-          content: TextField(
-            onChanged: (value) {
-              setState(() {
-                newBucketName = value;
-              });
-            },
-            controller: _textFieldController,
-            decoration: const InputDecoration(hintText: "Enter a name"),
+      builder: (_) {
+        return Padding(
+          padding: const EdgeInsets.all(16),
+          child: Wrap(
+            alignment: WrapAlignment.center,
+            children: [
+              const Text(
+                "Adding external bucket to your space:",
+                textScaleFactor: 1.4,
+              ),
+              const SizedBox(height: 40),
+              Text(externalBucketToAdd.hex),
+              const SizedBox(height: 40),
+              TextField(
+                onChanged: (value) {
+                  setState(() {
+                    newBucketName = value;
+                  });
+                },
+                controller: _textFieldController,
+                decoration: const InputDecoration(hintText: "Enter a name"),
+              ),
+              IconButton(
+                icon: const Icon(Icons.check),
+                onPressed: () {
+                  context.read<SpaceBloc>().add(
+                        AddExternalBucketEvent(
+                          newBucketName.isEmpty
+                              ? "external${Random.secure().nextInt(999999)}"
+                              : newBucketName,
+                          externalBucketToAdd,
+                        ),
+                      );
+                  Navigator.pop(context);
+                },
+              ),
+            ],
           ),
-          actions: <Widget>[
-            ElevatedButton(
-              style: ButtonStyle(
-                backgroundColor: MaterialStateProperty.all(
-                  Theme.of(context).colorScheme.secondary,
-                ),
-              ),
-              onPressed: () {
-                Navigator.pop(context);
-              },
-              child: Text(
-                'Cancel',
-                style: TextStyle(
-                  color: Theme.of(context).colorScheme.onPrimary,
-                ),
-              ),
-            ),
-            ElevatedButton(
-              style: ButtonStyle(
-                backgroundColor: MaterialStateProperty.all(
-                  Theme.of(context).colorScheme.primary,
-                ),
-              ),
-              child: Text(
-                label,
-                style: TextStyle(
-                  color: Theme.of(context).colorScheme.onPrimary,
-                ),
-              ),
-              onPressed: () {
-                fct(newBucketName);
-                Navigator.pop(context);
-              },
-            ),
-          ],
         );
       },
+    );
+  }
+
+  Widget _getBucketCard(
+    BuildContext context,
+    int index,
+    SpaceInitialized state,
+  ) {
+    final bucketLink =
+        "multispaces://www.multi-spaces.eth/multispaces/${state.buckets[index].address.hex}";
+    return Card(
+      child: Slidable(
+        key: const ValueKey(1),
+        groupTag: '0',
+        startActionPane: ActionPane(
+          motion: const BehindMotion(),
+          children: [
+            SlideAction(
+              foregroundColor: Theme.of(context).colorScheme.onPrimary,
+              backgroundColor: Theme.of(context).colorScheme.primary,
+              icon: Icons.share,
+              fct: (context) => showModalBottomSheet(
+                context: context,
+                builder: (context) {
+                  return Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Wrap(
+                      alignment: WrapAlignment.center,
+                      children: [
+                        QrImageView(
+                          data: bucketLink,
+                          padding: const EdgeInsets.all(80),
+                          eyeStyle: QrEyeStyle(
+                            eyeShape: QrEyeShape.square,
+                            color: Theme.of(context).colorScheme.primary,
+                          ),
+                          dataModuleStyle: QrDataModuleStyle(
+                            dataModuleShape: QrDataModuleShape.square,
+                            color: Theme.of(context).colorScheme.primary,
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+                        IconButton(
+                          icon: const Icon(Icons.share),
+                          onPressed: () {
+                            Share.share(
+                              bucketLink,
+                            );
+                            Navigator.pop(context);
+                          },
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              ),
+              label: 'Share',
+            ),
+          ],
+        ),
+        endActionPane: ActionPane(
+          motion: const BehindMotion(),
+          children: [
+            SlideAction(
+              foregroundColor: Theme.of(context).colorScheme.secondary,
+              backgroundColor: Theme.of(context).colorScheme.onSecondary,
+              icon: Icons.change_circle,
+              fct: (_) {
+                displayTextInputDialog(
+                  context,
+                  'Rename Bucket',
+                  'Rename',
+                  (String name) {
+                    Provider.of<SpaceBloc>(
+                      context,
+                      listen: false,
+                    ).add(
+                      RenameBucketEvent(
+                        state.buckets[index].name,
+                        name,
+                      ),
+                    );
+                  },
+                  initialValue: state.buckets[index].name,
+                );
+              },
+              label: 'Rename',
+            ),
+            SlideAction(
+              foregroundColor: Theme.of(context).colorScheme.tertiary,
+              backgroundColor: Theme.of(context).colorScheme.onTertiary,
+              icon: Icons.delete_forever,
+              fct: (_) async {
+                await displayConfirmDialog(
+                  context,
+                  "Are you sure?",
+                  "Delete",
+                  () => context.read<SpaceBloc>().add(
+                        RemoveBucketEvent(
+                          state.buckets[index].name,
+                        ),
+                      ),
+                );
+              },
+              label: 'Delete',
+            ),
+          ],
+        ),
+        child: SpaceListTile(
+          spaceState: state,
+          index: index,
+        ),
+      ),
     );
   }
 }
@@ -381,42 +460,26 @@ class SpaceListTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListTile(
-      leading: spaceState.buckets[index].isExternal
-          ? const Icon(Icons.travel_explore)
-          : const Icon(Icons.public),
+      leading: SizedBox(
+        height: double.infinity,
+        child: spaceState.buckets[index].isExternal
+            ? const Icon(Icons.add_link)
+            : const Icon(Icons.source),
+      ),
       trailing: const Icon(Icons.keyboard_arrow_right),
-      title: Text(spaceState.buckets[index].name),
-      onTap: () => Navigator.of(context).push<void>(
-        MaterialPageRoute<SpacePage>(
-          builder: (_) {
-            print(spaceState.buckets[index].address.hex);
-            return MultiBlocProvider(
-              providers: [
-                BlocProvider.value(
-                  value: Provider.of<MultiSpacesBloc>(
-                    context,
-                  ),
-                ),
-                BlocProvider.value(
-                  value: Provider.of<SpaceBloc>(
-                    context,
-                  ),
-                ),
-                BlocProvider.value(
-                  value: Provider.of<TransactionBloc>(
-                    context,
-                  ),
-                ),
-              ],
-              child: BucketPage(
-                bucketName: spaceState.buckets[index].name,
-                bucketAddress: spaceState.buckets[index].address,
-                ownerName: spaceState.owner.name,
-                ownerAddress: spaceState.owner.adr,
-                isExternal: spaceState.buckets[index].isExternal,
-              ),
-            );
-          },
+      title: Text(
+        spaceState.buckets[index].name,
+        textScaleFactor: 1.2,
+      ),
+      onTap: () => Navigator.pushNamed(
+        context,
+        BucketPage.routeName,
+        arguments: BucketPageArguments(
+          spaceState.buckets[index].name,
+          spaceState.buckets[index].address,
+          spaceState.owner.name,
+          spaceState.owner.adr,
+          spaceState.buckets[index].isExternal,
         ),
       ),
       subtitle: Builder(
@@ -432,47 +495,24 @@ class SpaceListTile extends StatelessWidget {
           } else if (diff.inDays == 0) {
             creationWidget = Text("${diff.inHours} hour(s) ago");
           }
-          return Row(
-            mainAxisSize: MainAxisSize.max,
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: <Widget>[
-              creationWidget,
-              Text("$count items"),
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisSize: MainAxisSize.max,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: <Widget>[
+                  creationWidget,
+                  count == "1" ? Text("$count item") : Text("$count items"),
+                ],
+              ),
+              spaceState.buckets[index].isExternal
+                  ? const Text("external")
+                  : const Text("")
             ],
           );
         },
       ),
-    );
-  }
-}
-
-class SlideAction extends StatelessWidget {
-  const SlideAction({
-    Key? key,
-    required this.backgroundColor,
-    required this.foregroundColor,
-    required this.icon,
-    required this.label,
-    required this.fct,
-    this.flex = 1,
-  }) : super(key: key);
-
-  final Color backgroundColor;
-  final Color foregroundColor;
-  final IconData icon;
-  final int flex;
-  final Function fct;
-  final String label;
-
-  @override
-  Widget build(BuildContext context) {
-    return SlidableAction(
-      flex: flex,
-      backgroundColor: backgroundColor,
-      foregroundColor: foregroundColor,
-      onPressed: (BuildContext context) => fct(context),
-      icon: icon,
-      label: label,
     );
   }
 }

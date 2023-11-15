@@ -169,6 +169,10 @@ class MultiSpacesBloc extends HydratedBloc<MultiSpacesEvent, MultiSpaceState> {
 
       final transactionHash =
           await _multiSpacesRepository.createSpace(event.name);
+      if (transactionHash == "") {
+        _logger.i("User rejected.");
+        return emit(NoSpaceExisting());
+      }
       _logger.i("Transaction $transactionHash submitted.");
       emit(SpaceCreationInProgress(transactionHash));
     } catch (e) {

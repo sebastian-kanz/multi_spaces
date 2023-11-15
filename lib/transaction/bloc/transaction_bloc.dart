@@ -17,7 +17,11 @@ class TransactionBloc extends Bloc<TransactionEvent, TransactionState> {
 
   TransactionBloc()
       : _client = MultiSpaceClient().client,
-        super(TransactionsListening(transactionHashes: List<String>.empty())) {
+        super(
+          TransactionsListening(
+            waitingTransactions: List<NamedTransaction>.empty(),
+          ),
+        ) {
     on<TransactionSubmittedEvent>(_onTransactionSubmittedEvent);
     on<TransactionsCompletedEvent>(_onTransactionCompletedEvent);
     on<TransactionsErroredEvent>(_onTransactionErroredEvent);
@@ -27,27 +31,27 @@ class TransactionBloc extends Bloc<TransactionEvent, TransactionState> {
     final blockStream = Stream<void>.periodic(const Duration(seconds: 5));
     _newBlocksSubscription ??= blockStream.listen(
       (newBlock) async {
-        final hashes = List<String>.from(
-          (state as TransactionsListening).transactionHashes,
+        final transactions = List<NamedTransaction>.from(
+          (state as TransactionsListening).waitingTransactions,
         );
-        final List<String> successfulTx = [];
-        final List<String> failedTx = [];
-        for (var hash in hashes.where((elem) => elem != "")) {
-          final receipt = await _client.getTransactionReceipt(hash);
+        final List<NamedTransaction> successfulTx = [];
+        final List<NamedTransaction> failedTx = [];
+        for (var tx in transactions.where((elem) => elem.hash != "")) {
+          final receipt = await _client.getTransactionReceipt(tx.hash);
           if (receipt != null) {
             if (receipt.status == true) {
-              successfulTx.add(hash);
+              successfulTx.add(tx);
             } else {
-              failedTx.add(hash);
+              failedTx.add(tx);
             }
             break;
           }
         }
         if (successfulTx.isNotEmpty) {
-          add(TransactionsCompletedEvent(transactionHashes: successfulTx));
+          add(TransactionsCompletedEvent(transactions: successfulTx));
         }
         if (failedTx.isNotEmpty) {
-          add(TransactionsErroredEvent(transactionHashes: failedTx));
+          add(TransactionsErroredEvent(transactions: failedTx));
         }
       },
       onError: (error) => _logger.e(error),
@@ -65,17 +69,19 @@ class TransactionBloc extends Bloc<TransactionEvent, TransactionState> {
     Emitter<TransactionState> emit,
   ) async {
     try {
-      _logger.d("Transaction submitted: ${event.transactionHash}");
+      _logger.d("Transaction submitted: ${event.transaction.hash}");
       _setupNewBlockListener();
       emit(TransactionsChanged(
-        transactionHashes: [...state.transactionHashes, event.transactionHash],
+        waitingTransactions: [...state.waitingTransactions, event.transaction],
+        failedTransactions: state.failedTransactions,
       ));
       emit(
         TransactionsListening(
-          transactionHashes: [
-            ...state.transactionHashes,
-            event.transactionHash
+          waitingTransactions: [
+            ...state.waitingTransactions,
+            event.transaction
           ],
+          failedTransactions: state.failedTransactions,
         ),
       );
     } catch (e) {
@@ -88,25 +94,26 @@ class TransactionBloc extends Bloc<TransactionEvent, TransactionState> {
     Emitter<TransactionState> emit,
   ) async {
     try {
-      final hashes = state.transactionHashes;
-      final failedHashes = state.failedTransactionHashes;
-      for (var hash in event.transactionHashes) {
-        hashes.remove(hash);
+      final waitingTx = state.waitingTransactions;
+      final failedTx = state.failedTransactions;
+      for (var tx in event.transactions) {
+        waitingTx.removeWhere((element) =>
+            element.hash == tx.hash && element.description == tx.description);
       }
       _logger.d(
-        "Transactions completed: ${event.transactionHashes.toString()}. ${hashes.length} open tx left.",
+        "Transactions completed: ${event.transactions.map((e) => e.hash)}. ${waitingTx.length} open tx left.",
       );
 
       emit(TransactionsChanged(
-        transactionHashes: hashes,
-        failedTransactionHashes: failedHashes,
+        waitingTransactions: waitingTx,
+        failedTransactions: failedTx,
       ));
       emit(
         TransactionsListening(
-          transactionHashes: hashes,
+          waitingTransactions: waitingTx,
         ),
       );
-      if (hashes.isEmpty) {
+      if (waitingTx.isEmpty) {
         await _newBlocksSubscription?.cancel();
         _newBlocksSubscription = null;
       }
@@ -120,26 +127,28 @@ class TransactionBloc extends Bloc<TransactionEvent, TransactionState> {
     Emitter<TransactionState> emit,
   ) async {
     try {
-      final hashes = state.transactionHashes;
-      final failedHashes = state.failedTransactionHashes;
-      for (var hash in event.transactionHashes) {
-        hashes.remove(hash);
+      final waitingTx = state.waitingTransactions;
+      final failedTx = state.failedTransactions;
+      for (var tx in event.transactions) {
+        waitingTx.removeWhere((element) =>
+            element.hash == tx.hash && element.description == tx.description);
       }
 
       _logger.d(
-        "Transactions errored: ${event.transactionHashes.toString()}. ${hashes.length} open tx left.",
+        "Transactions errored: ${event.transactions.map((e) => e.hash)}. ${waitingTx.length} open tx left.",
       );
 
       emit(TransactionsChanged(
-        transactionHashes: hashes,
-        failedTransactionHashes: failedHashes,
+        waitingTransactions: waitingTx,
+        failedTransactions: failedTx,
       ));
       emit(
         TransactionsListening(
-            transactionHashes: hashes,
-            failedTransactionHashes: [...event.transactionHashes]),
+          waitingTransactions: waitingTx,
+          failedTransactions: [...event.transactions],
+        ),
       );
-      if (hashes.isEmpty) {
+      if (waitingTx.isEmpty) {
         await _newBlocksSubscription?.cancel();
         _newBlocksSubscription = null;
       }

@@ -6,9 +6,6 @@ import 'package:multi_spaces/bucket/domain/repository/bucket_repository.dart';
 import 'package:multi_spaces/bucket/domain/repository/ipfs_vault_repository.dart';
 import 'package:multi_spaces/bucket/domain/repository/participant_repository.dart';
 import 'package:multi_spaces/core/error/failures.dart';
-import 'package:web3dart/crypto.dart';
-import 'package:web3dart/web3dart.dart';
-
 import '../../../core/usecases/usecase.dart';
 
 class AddDeviceParticipationUseCase implements UseCase<String, void> {

@@ -6,14 +6,23 @@ import 'package:blockchain_repository/blockchain_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:multi_spaces/authentication/bloc/authentication_bloc.dart';
+import 'package:multi_spaces/bucket/presentation/screens/bucket_page.dart';
 import 'package:multi_spaces/core/blockchain_repository/internal_blockchain_repository.dart';
 import 'package:multi_spaces/core/constants.dart';
 import 'package:multi_spaces/core/theme/cubit/theme_cubit.dart';
 import 'package:multi_spaces/login/screens/login/login_page.dart';
+import 'package:multi_spaces/multi_spaces/repository/multi_spaces_repository.dart';
 import 'package:multi_spaces/multi_spaces/screens/multi_spaces_page.dart';
+import 'package:multi_spaces/payment/bloc/payment_bloc.dart';
+import 'package:multi_spaces/space/screens/space_page.dart';
 import 'package:multi_spaces/splash/splash.dart';
+import 'package:multi_spaces/transaction/bloc/transaction_bloc.dart';
 import 'package:provider/provider.dart';
 import 'package:user_repository/user_repository.dart';
+import 'package:web3dart/web3dart.dart';
+
+import 'multi_spaces/bloc/multi_spaces_bloc.dart';
+import 'payment/repository/payment_repository.dart';
 
 class App extends StatelessWidget {
   const App({
@@ -37,6 +46,9 @@ class App extends StatelessWidget {
         RepositoryProvider<UserRepository>(
           create: (context) => UserRepository(),
         ),
+        RepositoryProvider<MultiSpacesRepository>(
+          create: (context) => MultiSpacesRepository(),
+        )
       ],
       child: MultiBlocProvider(
         providers: [
@@ -73,6 +85,11 @@ class _AppViewState extends State<AppView> {
     // Handle link when app is in warm state (front or background)
     _linkSubscription = appLinks.uriLinkStream.listen((uri) {
       print('onAppLink: $uri');
+      print('onAppLink: ${uri.path}');
+      _navigator.pushNamedAndRemoveUntil<void>(
+        uri.path,
+        (Route<dynamic> route) => false,
+      );
     });
   }
 
@@ -104,14 +121,14 @@ class _AppViewState extends State<AppView> {
               listener: (context, state) {
                 switch (state.status) {
                   case AuthenticationStatus.authenticated:
-                    _navigator.pushAndRemoveUntil<void>(
-                      MultiSpacesPage.route(),
-                      (route) => false,
+                    _navigator.pushNamedAndRemoveUntil<void>(
+                      MultiSpacesPage.routeName,
+                      (Route<dynamic> route) => false,
                     );
                     break;
                   case AuthenticationStatus.unauthenticated:
                     _navigator.pushNamedAndRemoveUntil<void>(
-                      loginRoute,
+                      LoginPage.routeName,
                       (Route<dynamic> route) => false,
                     );
                     break;
@@ -128,11 +145,86 @@ class _AppViewState extends State<AppView> {
         body: SplashPage(),
       ),
       routes: <String, WidgetBuilder>{
-        loginRoute: (context) => const LoginPage(),
+        LoginPage.routeName: (context) => const LoginPage(),
       },
       onGenerateRoute: (settings) {
-        print(settings);
-        return SplashPage.route();
+        if (settings.name?.contains(MultiSpacesPage.routeName) == true) {
+          if (settings.name == MultiSpacesPage.routeName) {
+            return MultiSpacesPage.route();
+          } else {
+            final parts = settings.name?.split("/").toList();
+            final externalBucket = parts!.last;
+            return MultiSpacesPage.route(
+              externalBucket: EthereumAddress.fromHex(
+                externalBucket,
+              ),
+            );
+          }
+        } else if (settings.name == BucketPage.routeName) {
+          final args = settings.arguments as BucketPageArguments;
+          return MaterialPageRoute<BucketPage>(
+            builder: (context) {
+              return MultiBlocProvider(
+                providers: [
+                  BlocProvider(
+                    create: (context) => TransactionBloc(),
+                  ),
+                ],
+                child: BucketPage(
+                  bucketName: args.bucketName,
+                  bucketAddress: args.bucketAddress,
+                  ownerName: args.ownerName,
+                  ownerAddress: args.ownerAddress,
+                  isExternal: args.isExternal,
+                ),
+              );
+            },
+          );
+        } else if (settings.name == SpacePage.routeName) {
+          final args = settings.arguments as SpacePageArguments;
+          return MaterialPageRoute<SpacePage>(
+            builder: (context) {
+              return MultiBlocProvider(
+                providers: [
+                  BlocProvider(
+                    create: (context) => MultiSpacesBloc(
+                      multiSpacesRepository:
+                          RepositoryProvider.of<MultiSpacesRepository>(
+                        context,
+                      ),
+                      authenticationBloc:
+                          BlocProvider.of<AuthenticationBloc>(context),
+                    ),
+                  ),
+                  BlocProvider(
+                    create: (context) => TransactionBloc(),
+                  ),
+                  BlocProvider(
+                    lazy: false,
+                    create: (context) {
+                      final paymentRepository = PaymentRepository(
+                        args.paymentManagerAddress.hex,
+                      );
+                      return PaymentBloc(
+                        paymentRepository: paymentRepository,
+                        transactionBloc: BlocProvider.of<TransactionBloc>(
+                          context,
+                        ),
+                      );
+                    },
+                  ),
+                ],
+                child: SpacePage(
+                  spaceAddress: args.spaceAddress,
+                  paymentManagerAddress: args.paymentManagerAddress,
+                  externalBucketToAdd: args.externalBucketToAdd,
+                ),
+              );
+            },
+          );
+        } else {
+          return SplashPage.route();
+        }
       },
       onUnknownRoute: (settings) {
         print(settings);

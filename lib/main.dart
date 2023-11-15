@@ -49,7 +49,7 @@ Future<void> main() async {
 
   if (!kIsWeb) {
     final root = await getApplicationDocumentsDirectory();
-    final path = '${root.path}/database';
+    final path = '${root.path}/multi_spaces/database';
     Hive
       ..init(path)
       ..registerAdapter(EthereumAddressAdapter());

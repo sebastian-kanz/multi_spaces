@@ -962,6 +962,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.5.0"
+  open_app_file:
+    dependency: "direct main"
+    description:
+      name: open_app_file
+      sha256: "5dd0af054364c12093947ad3e69370bb22ca535ca17f81f7b72444c7be18cc01"
+      url: "https://pub.dev"
+    source: hosted
+    version: "4.0.2"
   package_config:
     dependency: transitive
     description:
@@ -1341,6 +1349,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.2.0"
+  swipeable_button_view:
+    dependency: "direct main"
+    description:
+      name: swipeable_button_view
+      sha256: "6fbe3fe9084d849828fa49bf1f5d48a107f7797e3c7eff41aa61541c0b6d97f2"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.0.2"
   synchronized:
     dependency: transitive
     description:

@@ -34,4 +34,12 @@ class UseCaseFailure extends Failure {
 
 class BlocFailure extends Failure {
   const BlocFailure(failure) : super(failure);
+
+  factory BlocFailure.fromJson(Map<String, dynamic> json) => BlocFailure(
+        json['failure'],
+      );
+
+  Map<String, dynamic> toJson() => {
+        'failure': failure,
+      };
 }

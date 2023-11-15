@@ -8,25 +8,27 @@ abstract class TransactionEvent extends Equatable {
 }
 
 class TransactionSubmittedEvent extends TransactionEvent {
-  final String transactionHash;
-  const TransactionSubmittedEvent({required this.transactionHash});
+  final NamedTransaction transaction;
+  const TransactionSubmittedEvent({
+    required this.transaction,
+  });
 
   @override
-  List<Object> get props => [transactionHash];
+  List<Object> get props => [transaction];
 }
 
 class TransactionsCompletedEvent extends TransactionEvent {
-  final List<String> transactionHashes;
-  const TransactionsCompletedEvent({required this.transactionHashes});
+  final List<NamedTransaction> transactions;
+  const TransactionsCompletedEvent({required this.transactions});
 
   @override
-  List<Object> get props => [transactionHashes];
+  List<Object> get props => [transactions];
 }
 
 class TransactionsErroredEvent extends TransactionEvent {
-  final List<String> transactionHashes;
-  const TransactionsErroredEvent({required this.transactionHashes});
+  final List<NamedTransaction> transactions;
+  const TransactionsErroredEvent({required this.transactions});
 
   @override
-  List<Object> get props => [transactionHashes];
+  List<Object> get props => [transactions];
 }

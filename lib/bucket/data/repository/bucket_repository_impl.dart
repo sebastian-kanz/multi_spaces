@@ -284,9 +284,9 @@ class BucketRepositoryImpl implements BucketRepository {
       () => _bucket.acceptParticipation(
         requestor,
         credentials:
-            BlockchainProviderManager().authenticatedProvider!.getCredentails(),
+            BlockchainProviderManager().internalProvider.getCredentails(),
         transaction: Transaction(
-          from: BlockchainProviderManager().authenticatedProvider!.getAccount(),
+          from: BlockchainProviderManager().internalProvider.getAccount(),
           maxGas: 3000000,
           value:
               baseFee != null ? EtherAmount.inWei(BigInt.from(baseFee)) : null,

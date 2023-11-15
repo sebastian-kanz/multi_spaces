@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:blockchain_provider/blockchain_provider.dart';
@@ -30,6 +29,7 @@ import 'package:multi_spaces/bucket/domain/usecase/create_element_usecase.dart';
 import 'package:multi_spaces/bucket/domain/usecase/create_keys_usecase.dart';
 import 'package:multi_spaces/bucket/domain/usecase/get_full_elements_usecase.dart';
 import 'package:multi_spaces/bucket/domain/usecase/get_requests_usecase.dart';
+import 'package:multi_spaces/bucket/domain/usecase/keys_existing_usecase.dart';
 import 'package:multi_spaces/bucket/domain/usecase/listen_bucket_events_usecase.dart';
 import 'package:multi_spaces/bucket/domain/usecase/listen_element_usecase.dart';
 import 'package:multi_spaces/bucket/domain/usecase/listen_key_events_usecase.dart';
@@ -39,6 +39,9 @@ import 'package:multi_spaces/bucket/domain/usecase/request_participation_usecase
 import 'package:multi_spaces/bucket/domain/usecase/sync_elements_usecase.dart';
 import 'package:multi_spaces/bucket/domain/usecase/sync_history_usecase.dart';
 import 'package:multi_spaces/core/env/Env.dart';
+import 'package:multi_spaces/core/error/error.dart';
+import 'package:multi_spaces/core/utils/input_dialog.dart';
+import 'package:multi_spaces/core/widgets/slide_action.dart';
 import 'package:multi_spaces/transaction/bloc/transaction_bloc.dart';
 import 'package:web3dart/web3dart.dart';
 import '../../../core/utils/string.utils.dart';
@@ -46,6 +49,22 @@ import '../bloc/bucket_bloc.dart';
 import 'package:multi_spaces/core/contracts/Bucket.g.dart';
 import 'package:badges/badges.dart' as badges;
 import 'package:multi_spaces/core/networking/MultiSpaceClient.dart';
+
+class BucketPageArguments {
+  final String bucketName;
+  final EthereumAddress bucketAddress;
+  final String ownerName;
+  final EthereumAddress ownerAddress;
+  final bool isExternal;
+
+  BucketPageArguments(
+    this.bucketName,
+    this.bucketAddress,
+    this.ownerName,
+    this.ownerAddress,
+    this.isExternal,
+  );
+}
 
 class BucketBlocUseCases {
   final ListenBucketEventsUseCase listenElementsInBucketUseCase;
@@ -64,6 +83,7 @@ class BucketBlocUseCases {
   final ListenElementUseCase listenElementUseCase;
   final ListenParticipationEventsUseCase listenParticipationEventsUseCase;
   final ListenRequestEventsUseCase listenRequestEventsUseCase;
+  final KeysExistingUseCase keysExistingUseCase;
 
   BucketBlocUseCases(
     this.listenElementsInBucketUseCase,
@@ -82,6 +102,7 @@ class BucketBlocUseCases {
     this.listenElementUseCase,
     this.listenParticipationEventsUseCase,
     this.listenRequestEventsUseCase,
+    this.keysExistingUseCase,
   );
 }
 
@@ -91,6 +112,8 @@ class BucketPage extends StatelessWidget {
   final String ownerName;
   final EthereumAddress ownerAddress;
   final bool isExternal;
+
+  static const routeName = '/bucket';
 
   const BucketPage({
     super.key,
@@ -138,8 +161,7 @@ class BucketPage extends StatelessWidget {
     );
     final metaRepository = MetaRepositoryImpl(ipfsVaultRepository);
     await metaRepository.initialize(bucketAddress.hex);
-    final fileStorageRepository =
-        FileStorageRepository(ownerName, bucketAddress.hex, bucketName);
+    final fileStorageRepository = FileStorageRepository(ownerName, bucketName);
     final dataRepository = DataRepositoryImpl(
       ipfsVaultRepository,
       fileStorageRepository,
@@ -206,6 +228,7 @@ class BucketPage extends StatelessWidget {
         ListenParticipationEventsUseCase(participantRepository);
     final listenRequestEventsUseCase =
         ListenRequestEventsUseCase(participantRepository);
+    final keysExistingUseCase = KeysExistingUseCase(bucketRepository);
     return BucketBlocUseCases(
       listenElementsInBucketUseCase,
       getFullElementsUseCase,
@@ -223,6 +246,7 @@ class BucketPage extends StatelessWidget {
       listenElementUseCase,
       listenParticipationEventsUseCase,
       listenRequestEventsUseCase,
+      keysExistingUseCase,
     );
   }
 
@@ -233,9 +257,19 @@ class BucketPage extends StatelessWidget {
         builder: (context, AsyncSnapshot<BucketBlocUseCases> snapshot) {
           if (snapshot.hasError) {
             print(snapshot.error);
-            return Container();
+            return const ErrorContainer();
           } else if (!snapshot.hasData) {
-            return Container();
+            return const Scaffold(
+              body: Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    CircularProgressIndicator(),
+                    Text("Bucket loading..."),
+                  ],
+                ),
+              ),
+            );
           } else {
             return MultiBlocProvider(
               providers: [
@@ -273,6 +307,7 @@ class BucketPage extends StatelessWidget {
                       transactionBloc: BlocProvider.of<TransactionBloc>(
                         context,
                       ),
+                      keysExistingUseCase: snapshot.data!.keysExistingUseCase,
                       bucketName: bucketName,
                       tenant: ownerName,
                       bucketAddress: bucketAddress.hex,
@@ -337,13 +372,13 @@ class BucketPageView extends StatelessWidget {
         builder: (context, state) {
           return BlocConsumer<TransactionBloc, TransactionState>(
             listener: (context, state) {
-              if (state.failedTransactionHashes.isNotEmpty) {
+              if (state.failedTransactions.isNotEmpty) {
                 ScaffoldMessenger.of(context)
                   ..hideCurrentSnackBar()
                   ..showSnackBar(
                     SnackBar(
                       content: Text(
-                        'Tx failed: ${state.failedTransactionHashes.last}.',
+                        'Tx failed: ${state.failedTransactions.last.description}.',
                       ),
                     ),
                   );
@@ -380,13 +415,15 @@ class BucketPageView extends StatelessWidget {
                         },
                       ),
                       expandedHeight: 140,
-                      pinned: true,
+                      // pinned: true,
+                      title: Text(bucketName),
                       flexibleSpace: Row(
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: <Widget>[
                           Expanded(
                             flex: 1,
                             child: FlexibleSpaceBar(
+                              stretchModes: [StretchMode.fadeTitle],
                               centerTitle: false,
                               title: Text(
                                 BlocProvider.of<BucketBloc>(context)
@@ -421,22 +458,134 @@ class BucketPageView extends StatelessWidget {
                                   )
                                 : Container(),
                           ),
-                          Padding(
-                            padding: const EdgeInsets.all(8),
-                            child: IconButton(
-                              icon: const Icon(Icons.search),
-                              onPressed: () {},
-                            ),
-                          ),
+                          // Padding(
+                          //   padding: const EdgeInsets.all(8),
+                          //   child: IconButton(
+                          //     icon: const Icon(Icons.search),
+                          //     onPressed: () {},
+                          //   ),
+                          // ),
                         ],
                       ),
                     ),
+                    // SliverPersistentHeader(
+                    //   delegate: SliverPersistentHeaderDelegate(
+                    //     TabBar(
+                    //       tabs: [
+                    //         Tab(icon: Icon(Icons.flight)),
+                    //         Tab(icon: Icon(Icons.directions_transit)),
+                    //         Tab(icon: Icon(Icons.directions_car)),
+                    //       ],
+                    //     ),
+                    //   ),
+                    //   pinned: false,
+                    // ),
                     SliverToBoxAdapter(
-                      child: (transactionState.transactionHashes.isNotEmpty ||
-                              (state.status != BucketStatus.success &&
-                                  state.status != BucketStatus.failure))
-                          ? const LinearProgressIndicator()
-                          : Container(),
+                      child: Builder(
+                        builder: (context) {
+                          if (state.status == BucketStatus.loading ||
+                              state.status == BucketStatus.waitingForKeys) {
+                            return const LinearProgressIndicator();
+                          } else if (transactionState
+                              .waitingTransactions.isNotEmpty) {
+                            final description = transactionState
+                                .waitingTransactions.last.description;
+                            if (description == null) {
+                              return const LinearProgressIndicator();
+                            }
+                            return Column(
+                              mainAxisAlignment: MainAxisAlignment.end,
+                              children: [
+                                Text(
+                                  description,
+                                  textScaleFactor: 0.8,
+                                ),
+                                const LinearProgressIndicator(),
+                              ],
+                            );
+                          }
+                          return Container();
+                        },
+                      ),
+                    ),
+                    SliverToBoxAdapter(
+                      child: Builder(
+                        builder: (context) {
+                          if (state.status ==
+                              BucketStatus.waitingForParticipation) {
+                            return SizedBox(
+                              height: 200,
+                              child: Center(
+                                child: Text(
+                                  "Waiting for your participation to be confirmed...",
+                                ),
+                              ),
+                            );
+                          } else if (state.status == BucketStatus.loading &&
+                              state.confirmTx == true) {
+                            return SizedBox(
+                              height: 200,
+                              child: Center(
+                                child: Text(
+                                  "Waiting for transaction to be confirmed...",
+                                ),
+                              ),
+                            );
+                          }
+                          return Container();
+                        },
+                      ),
+                    ),
+                    SliverToBoxAdapter(
+                      child: Builder(
+                        builder: (context) {
+                          if (state.elements.isEmpty &&
+                              state.newElement?.isEmpty == true) {
+                            return const SizedBox(
+                              height: 200,
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Text(
+                                    "Looks empty here...",
+                                    textScaleFactor: 1.3,
+                                    style:
+                                        TextStyle(fontWeight: FontWeight.bold),
+                                  ),
+                                  Text(
+                                    "Click on the button below to add some files.",
+                                  ),
+                                ],
+                              ),
+                            );
+                          }
+                          return Container();
+                        },
+                      ),
+                    ),
+                    SliverList(
+                      delegate: SliverChildBuilderDelegate(
+                        childCount:
+                            (state.newElement?.isNotEmpty ?? false) ? 1 : 0,
+                        (BuildContext context, int index) {
+                          return Card(
+                            child: ListTile(
+                              enabled: false,
+                              leading: const Icon(Icons.sync),
+                              title: Text(
+                                state.newElement!,
+                                textScaleFactor: 2,
+                              ),
+                              subtitle: Text(
+                                DateFormat('dd/MM/yy, HH:mm')
+                                    .format(DateTime.now())
+                                    .toString(),
+                              ),
+                            ),
+                          );
+                        },
+                      ),
                     ),
                     SliverList(
                       delegate: SliverChildBuilderDelegate(
@@ -446,30 +595,44 @@ class BucketPageView extends StatelessWidget {
                             child: Slidable(
                               key: const ValueKey(1),
                               groupTag: '0',
-                              startActionPane: ActionPane(
-                                motion: const BehindMotion(),
-                                children: [
-                                  SlideAction(
-                                    color: Colors.green,
-                                    icon: Icons.share,
-                                    fct: (context) => print("Share"),
-                                    label: 'Share',
-                                  ),
-                                ],
-                              ),
                               endActionPane: ActionPane(
                                 motion: const BehindMotion(),
+                                extentRatio: 0.6,
                                 children: [
                                   SlideAction(
-                                    color: Colors.blue,
+                                    foregroundColor:
+                                        Theme.of(context).colorScheme.onPrimary,
+                                    backgroundColor:
+                                        Theme.of(context).colorScheme.primary,
                                     icon: Icons.change_circle,
-                                    fct: (_) {},
+                                    fct: (_) async {
+                                      final initialName =
+                                          state.elements[index].meta.name;
+                                      await displayTextInputDialog(
+                                        context,
+                                        "Name",
+                                        "Rename",
+                                        (val) => null,
+                                        initialValue: initialName,
+                                      );
+                                    },
                                     label: 'Rename',
                                   ),
                                   SlideAction(
-                                    color: Colors.red,
+                                    foregroundColor: Theme.of(context)
+                                        .colorScheme
+                                        .onSecondary,
+                                    backgroundColor:
+                                        Theme.of(context).colorScheme.secondary,
                                     icon: Icons.delete_forever,
-                                    fct: (_) {},
+                                    fct: (_) async {
+                                      await displayConfirmDialog(
+                                        context,
+                                        "Are you sure?",
+                                        "Delete",
+                                        () => null,
+                                      );
+                                    },
                                     label: 'Delete',
                                   ),
                                 ],
@@ -506,17 +669,25 @@ class BucketPageView extends StatelessWidget {
             heroTag: null,
             label: const Text("Folder"),
             icon: const Icon(Icons.folder),
-            onPressed: () {
-              final createEvent = CreateElementEvent(
-                name: 'Folder_${Random.secure().nextInt(99999999)}',
-                data: Uint8List.fromList([]),
-                type: "folder",
-                format: "",
-                created: DateTime.now().toUtc().millisecondsSinceEpoch,
-                size: 0,
-                parents: BlocProvider.of<BucketBloc>(context).state.parents,
+            onPressed: () async {
+              await displayTextInputDialog(
+                context,
+                "Folder Name",
+                "Create",
+                (val) {
+                  CreateElementEvent createEvent = CreateElementEvent(
+                    name: val,
+                    data: Uint8List.fromList([]),
+                    type: "folder",
+                    format: "",
+                    created: DateTime.now().toUtc().millisecondsSinceEpoch,
+                    size: 0,
+                    parents: BlocProvider.of<BucketBloc>(context).state.parents,
+                  );
+                  context.read<BucketBloc>().add(CreateKeysEvent(createEvent));
+                },
               );
-              context.read<BucketBloc>().add(CreateKeysEvent(createEvent));
+
               _key.currentState?.toggle();
             },
           ),
@@ -553,33 +724,6 @@ class BucketPageView extends StatelessWidget {
               }
             },
           ),
-          FloatingActionButton.extended(
-            onPressed: () => {
-              showModalBottomSheet(
-                context: context,
-                builder: (context) {
-                  return Wrap(
-                    children: [
-                      ListTile(
-                        leading: Icon(Icons.share),
-                        title: Text('Share'),
-                      ),
-                      ListTile(
-                        leading: Icon(Icons.copy),
-                        title: Text('Copy Link'),
-                      ),
-                      ListTile(
-                        leading: Icon(Icons.edit),
-                        title: Text('Edit'),
-                      ),
-                    ],
-                  );
-                },
-              ),
-              _key.currentState?.toggle(),
-            },
-            label: const Text("bla"),
-          ),
         ],
       ),
     );
@@ -589,11 +733,9 @@ class BucketPageView extends StatelessWidget {
 class BucketListTile extends StatelessWidget {
   const BucketListTile({
     Key? key,
-    // required this.spaceState,
     required this.index,
   }) : super(key: key);
 
-  // final SpaceInitialized spaceState;
   final int index;
 
   @override
@@ -602,9 +744,11 @@ class BucketListTile extends StatelessWidget {
     return ListTile(
       leading: state.elements[index].meta.type == "folder"
           ? const Icon(Icons.folder)
-          : const Icon(Icons.data_object),
+          : const Icon(Icons.file_present),
       title: Text(
         state.elements[index].meta.name,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
         textScaleFactor: 2,
       ),
       onTap: () => BlocProvider.of<BucketBloc>(context).add(GetElementsEvent(
@@ -629,35 +773,6 @@ class BucketListTile extends StatelessWidget {
           );
         },
       ),
-    );
-  }
-}
-
-class SlideAction extends StatelessWidget {
-  const SlideAction({
-    Key? key,
-    required this.color,
-    required this.icon,
-    required this.label,
-    required this.fct,
-    this.flex = 1,
-  }) : super(key: key);
-
-  final Color color;
-  final IconData icon;
-  final int flex;
-  final Function fct;
-  final String label;
-
-  @override
-  Widget build(BuildContext context) {
-    return SlidableAction(
-      flex: flex,
-      backgroundColor: color,
-      foregroundColor: Colors.white,
-      onPressed: (BuildContext context) => fct(context),
-      icon: icon,
-      label: label,
     );
   }
 }

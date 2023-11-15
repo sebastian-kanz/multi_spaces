@@ -1,33 +1,33 @@
 part of 'transaction_bloc.dart';
 
+class NamedTransaction {
+  final String? description;
+  final String hash;
+  const NamedTransaction({required this.hash, this.description});
+}
+
 abstract class TransactionState extends Equatable {
-  final List<String> transactionHashes;
-  final List<String> failedTransactionHashes;
+  final List<NamedTransaction> waitingTransactions;
+  final List<NamedTransaction> failedTransactions;
   const TransactionState(
-    this.transactionHashes,
-    this.failedTransactionHashes,
+    this.waitingTransactions,
+    this.failedTransactions,
   );
 
   @override
-  List<Object> get props => [];
+  List<Object> get props => [waitingTransactions, failedTransactions];
 }
 
 class TransactionsChanged extends TransactionState {
-  TransactionsChanged({
-    required transactionHashes,
-    failedTransactionHashes = const <String>[],
-  }) : super(transactionHashes, failedTransactionHashes);
-
-  @override
-  List<Object> get props => [transactionHashes];
+  const TransactionsChanged({
+    required waitingTransactions,
+    failedTransactions = const <NamedTransaction>[],
+  }) : super(waitingTransactions, failedTransactions);
 }
 
 class TransactionsListening extends TransactionState {
   const TransactionsListening({
-    required transactionHashes,
-    failedTransactionHashes = const <String>[],
-  }) : super(transactionHashes, failedTransactionHashes);
-
-  @override
-  List<Object> get props => [transactionHashes];
+    required waitingTransactions,
+    failedTransactions = const <NamedTransaction>[],
+  }) : super(waitingTransactions, failedTransactions);
 }

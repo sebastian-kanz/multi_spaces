@@ -15,15 +15,20 @@ class SpaceStateInitial extends SpaceState {
 class SpaceInitialized extends SpaceState {
   final SpaceOwner owner;
   final List<BucketInstance> buckets;
-  const SpaceInitialized(this.owner, this.buckets, EthereumAddress address)
-      : super(address);
+  final EthereumAddress? externalBucketToAdd;
+  const SpaceInitialized(
+    this.owner,
+    this.buckets,
+    EthereumAddress address, {
+    this.externalBucketToAdd,
+  }) : super(address);
 
   @override
   List<Object> get props => [owner, buckets, address];
 }
 
 class SpaceError extends SpaceState {
-  final Object error;
+  final Exception error;
   const SpaceError(this.error, EthereumAddress address) : super(address);
 
   @override

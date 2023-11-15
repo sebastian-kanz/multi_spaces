@@ -39,6 +39,3 @@ const int hiveElementModelTypeId = 2;
 const int hiveOperationModelTypeId = 3;
 const int hiveContainerModelTypeId = 4;
 const int hiveEthereumAddressTypeId = 5;
-
-// Routes
-const String loginRoute = '/login';
