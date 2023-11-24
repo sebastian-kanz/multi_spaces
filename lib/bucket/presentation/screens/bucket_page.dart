@@ -38,6 +38,7 @@ import 'package:multi_spaces/bucket/domain/usecase/listen_request_events_usecase
 import 'package:multi_spaces/bucket/domain/usecase/request_participation_usecase.dart';
 import 'package:multi_spaces/bucket/domain/usecase/sync_elements_usecase.dart';
 import 'package:multi_spaces/bucket/domain/usecase/sync_history_usecase.dart';
+import 'package:multi_spaces/bucket/domain/usecase/update_element_usecase.dart';
 import 'package:multi_spaces/core/env/Env.dart';
 import 'package:multi_spaces/core/error/error.dart';
 import 'package:multi_spaces/core/utils/input_dialog.dart';
@@ -84,6 +85,7 @@ class BucketBlocUseCases {
   final ListenParticipationEventsUseCase listenParticipationEventsUseCase;
   final ListenRequestEventsUseCase listenRequestEventsUseCase;
   final KeysExistingUseCase keysExistingUseCase;
+  final UpdateElementUseCase updateElementUseCase;
 
   BucketBlocUseCases(
     this.listenElementsInBucketUseCase,
@@ -103,6 +105,7 @@ class BucketBlocUseCases {
     this.listenParticipationEventsUseCase,
     this.listenRequestEventsUseCase,
     this.keysExistingUseCase,
+    this.updateElementUseCase,
   );
 }
 
@@ -229,6 +232,11 @@ class BucketPage extends StatelessWidget {
     final listenRequestEventsUseCase =
         ListenRequestEventsUseCase(participantRepository);
     final keysExistingUseCase = KeysExistingUseCase(bucketRepository);
+    final updateElementUseCase = UpdateElementUseCase(
+      elementRepository,
+      metaRepository,
+      containerRepository,
+    );
     return BucketBlocUseCases(
       listenElementsInBucketUseCase,
       getFullElementsUseCase,
@@ -247,6 +255,7 @@ class BucketPage extends StatelessWidget {
       listenParticipationEventsUseCase,
       listenRequestEventsUseCase,
       keysExistingUseCase,
+      updateElementUseCase,
     );
   }
 
@@ -304,6 +313,7 @@ class BucketPage extends StatelessWidget {
                           snapshot.data!.listenParticipationEventsUseCase,
                       listenRequestEventsUseCase:
                           snapshot.data!.listenRequestEventsUseCase,
+                      updateElementUseCase: snapshot.data!.updateElementUseCase,
                       transactionBloc: BlocProvider.of<TransactionBloc>(
                         context,
                       ),
@@ -326,6 +336,26 @@ class BucketPage extends StatelessWidget {
 class BucketPageView extends StatelessWidget {
   final String bucketName;
   const BucketPageView({super.key, required this.bucketName});
+
+  String _generateTitle(BuildContext context) {
+    if (BlocProvider.of<BucketBloc>(context).state.parents.isEmpty) {
+      return bucketName;
+    }
+    return BlocProvider.of<BucketBloc>(context).state.parents.last.meta.name;
+  }
+
+  String _generateSubtitle(BuildContext context) {
+    if (BlocProvider.of<BucketBloc>(context).state.parents.isEmpty) {
+      return "";
+    } else {
+      final parents = BlocProvider.of<BucketBloc>(context).state.parents;
+      if (parents.length == 1) {
+        return "$bucketName / ${parents.last.meta.name}";
+      } else {
+        return ".. / ${parents[parents.length - 2].meta.name} / ${parents.last.meta.name}";
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -415,70 +445,71 @@ class BucketPageView extends StatelessWidget {
                         },
                       ),
                       expandedHeight: 140,
-                      // pinned: true,
-                      title: Text(bucketName),
-                      flexibleSpace: Row(
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: <Widget>[
-                          Expanded(
-                            flex: 1,
-                            child: FlexibleSpaceBar(
-                              stretchModes: [StretchMode.fadeTitle],
-                              centerTitle: false,
-                              title: Text(
-                                BlocProvider.of<BucketBloc>(context)
-                                        .state
-                                        .parents
-                                        .isEmpty
-                                    ? bucketName
-                                    : BlocProvider.of<BucketBloc>(context)
-                                        .state
-                                        .parents
-                                        .last
-                                        .meta
-                                        .name,
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
+                      pinned: true,
+                      title: Text(
+                        _generateTitle(context),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      flexibleSpace: FlexibleSpaceBar(
+                        background: Column(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            Text(
+                              _generateSubtitle(context),
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                              ),
+                              textScaleFactor: 0.8,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 8,
+                              ),
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.end,
+                                children: <Widget>[
+                                  Expanded(flex: 1, child: Container()),
+                                  state.requestors.isNotEmpty
+                                      ? badges.Badge(
+                                          badgeContent: Text(state
+                                              .requestors.length
+                                              .toString()),
+                                          child: IconButton(
+                                            icon: const Icon(Icons.check),
+                                            onPressed: () {
+                                              context.read<BucketBloc>().add(
+                                                  const AcceptLatestRequestorEvent());
+                                            },
+                                          ),
+                                        )
+                                      : const IconButton(
+                                          icon: Icon(Icons.check),
+                                          onPressed: null,
+                                        ),
+                                ],
                               ),
                             ),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.all(8),
-                            child: state.requestors.isNotEmpty
-                                ? badges.Badge(
-                                    badgeContent: Text(
-                                        state.requestors.length.toString()),
-                                    child: IconButton(
-                                      icon: const Icon(Icons.check),
-                                      onPressed: () {
-                                        context.read<BucketBloc>().add(
-                                            const AcceptLatestRequestorEvent());
-                                      },
-                                    ),
-                                  )
-                                : Container(),
-                          ),
-                          // Padding(
-                          //   padding: const EdgeInsets.all(8),
-                          //   child: IconButton(
-                          //     icon: const Icon(Icons.search),
-                          //     onPressed: () {},
-                          //   ),
-                          // ),
-                        ],
+                          ],
+                        ),
                       ),
                     ),
-                    // SliverPersistentHeader(
-                    //   delegate: SliverPersistentHeaderDelegate(
-                    //     TabBar(
-                    //       tabs: [
-                    //         Tab(icon: Icon(Icons.flight)),
-                    //         Tab(icon: Icon(Icons.directions_transit)),
-                    //         Tab(icon: Icon(Icons.directions_car)),
+                    // SliverToBoxAdapter(
+                    //   child: Padding(
+                    //     padding: EdgeInsets.symmetric(vertical: 4),
+                    //     child: SearchBar(
+                    //       hintText: "Search",
+                    //       trailing: [
+                    //         IconButton(
+                    //           onPressed: () {},
+                    //           icon: Icon(Icons.search),
+                    //         )
                     //       ],
                     //     ),
                     //   ),
-                    //   pinned: false,
                     // ),
                     SliverToBoxAdapter(
                       child: Builder(
@@ -513,7 +544,7 @@ class BucketPageView extends StatelessWidget {
                         builder: (context) {
                           if (state.status ==
                               BucketStatus.waitingForParticipation) {
-                            return SizedBox(
+                            return const SizedBox(
                               height: 200,
                               child: Center(
                                 child: Text(
@@ -523,7 +554,7 @@ class BucketPageView extends StatelessWidget {
                             );
                           } else if (state.status == BucketStatus.loading &&
                               state.confirmTx == true) {
-                            return SizedBox(
+                            return const SizedBox(
                               height: 200,
                               child: Center(
                                 child: Text(
@@ -612,7 +643,12 @@ class BucketPageView extends StatelessWidget {
                                         context,
                                         "Name",
                                         "Rename",
-                                        (val) => null,
+                                        (val) => context.read<BucketBloc>().add(
+                                              RenameElementEvent(
+                                                state.elements[index],
+                                                val,
+                                              ),
+                                            ),
                                         initialValue: initialName,
                                       );
                                     },

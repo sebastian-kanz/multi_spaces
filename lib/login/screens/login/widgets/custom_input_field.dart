@@ -22,13 +22,13 @@ class CustomInputField extends StatelessWidget {
       decoration: InputDecoration(
         contentPadding: const EdgeInsets.all(kPaddingM),
         hintText: label,
-        hintStyle: const TextStyle(
-          // color: kBlack.withOpacity(0.5),
+        hintStyle: TextStyle(
+          color: Theme.of(context).colorScheme.outline,
           fontWeight: FontWeight.w500,
         ),
         prefixIcon: Icon(
           prefixIcon,
-          // color: kBlack.withOpacity(0.5),
+          color: Theme.of(context).colorScheme.outline,
         ),
       ),
       obscureText: obscureText,

@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'dart:typed_data';
 import 'package:cid/cid.dart';
 import 'package:http/http.dart' as http;
@@ -5,6 +6,7 @@ import 'dart:convert';
 
 import 'package:ipfs_api/ipfs_api.dart';
 import 'package:logger/logger.dart';
+import 'package:retry/retry.dart';
 
 class CrustIpfsApi extends IpfsApi {
   CrustIpfsApi({
@@ -58,6 +60,24 @@ class CrustIpfsApi extends IpfsApi {
         rethrow;
       }
 
+      // final pinResponse = await retry(() async {
+      //   final response = await _client.post(
+      //     Uri.parse('https://pin.crustcode.com/psa/pins'),
+      //     headers: <String, String>{
+      //       'Authorization':
+      //           'Bearer ${base64Encode(utf8.encode('eth-$_address:$_signature'))}',
+      //     },
+      //     body: {
+      //       "cid": addJson['Hash'],
+      //       // "name": addJson['Hash'],
+      //       // "meta": 'meta'
+      //     },
+      //   );
+      //   if (response.statusCode >= 400) {
+      //     throw Exception();
+      //   }
+      //   return response;
+      // }, maxAttempts: 2);
       final pinResponse = await _client.post(
         Uri.parse('https://pin.crustcode.com/psa/pins'),
         headers: <String, String>{
@@ -66,11 +86,14 @@ class CrustIpfsApi extends IpfsApi {
         },
         body: {
           "cid": addJson['Hash'],
-          // "name": 'data',
+          // "name": addJson['Hash'],
           // "meta": 'meta'
         },
       );
       if (pinResponse.statusCode >= 400) {
+        print(base64Encode(utf8.encode('eth-$_address:$_signature')));
+        print(pinResponse.statusCode);
+        print(pinResponse.body);
         print("Could not pin hash ${addJson['Hash']}");
         return addJson['Hash'];
       }

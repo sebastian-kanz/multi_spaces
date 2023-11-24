@@ -60,9 +60,9 @@ class HistoryRepositoryImpl
   @override
   Future<List<OperationEntity>> getUnsyncedOperations() async {
     try {
+      final unsynced = box.values.where((model) => !model.synced).toList();
       return Future.wait(
-        box.values
-            .where((model) => !model.synced)
+        unsynced
             .map((model) async => await OperationMapper.fromModel(model))
             .toList(),
       );

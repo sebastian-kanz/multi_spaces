@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:dartz/dartz.dart';
 import 'package:multi_spaces/bucket/domain/entity/container_entity.dart';
+import 'package:multi_spaces/bucket/domain/entity/element_entity.dart';
 import 'package:multi_spaces/bucket/domain/entity/meta_entity.dart';
 import 'package:multi_spaces/bucket/domain/repository/container_repository.dart';
 import 'package:multi_spaces/bucket/domain/repository/data_repository.dart';
@@ -15,7 +16,12 @@ import '../entity/full_element_entity.dart';
 class GetFullElementsUseCaseParams {
   final bool syncData;
   final List<FullElementEntity> parents;
-  GetFullElementsUseCaseParams(this.syncData, this.parents);
+  final String? nameFilter;
+  GetFullElementsUseCaseParams(
+    this.syncData,
+    this.parents, {
+    this.nameFilter,
+  });
 }
 
 class GetFullElementsUseCase
@@ -37,9 +43,14 @@ class GetFullElementsUseCase
     GetFullElementsUseCaseParams params,
   ) async {
     try {
-      final allElements = await elementRepository.getLatestChildren(
-        parent: params.parents.lastOrNull?.element,
-      );
+      List<ElementEntity> allElements = [];
+      if (params.nameFilter != null) {
+        allElements = await elementRepository.getLatest();
+      } else {
+        allElements = await elementRepository.getLatestChildren(
+          parent: params.parents.lastOrNull?.element,
+        );
+      }
       final allFullElements =
           await Future.wait(allElements.map((element) async {
         try {
@@ -47,6 +58,14 @@ class GetFullElementsUseCase
             element.metaHash,
             creationBlockNumber: element.created,
           );
+
+          // apply filter
+          if (params.nameFilter != null) {
+            if (!meta.name.contains(params.nameFilter!)) {
+              return null;
+            }
+          }
+
           final data = await dataRepository.getData(
             element.dataHash,
             meta.name,
@@ -75,8 +94,9 @@ class GetFullElementsUseCase
           );
         }
       }));
-      allFullElements.sort(((a, b) => b.meta.created - a.meta.created));
-      return Right(allFullElements);
+      final result = allFullElements.whereType<FullElementEntity>().toList();
+      result.sort(((a, b) => b.meta.created - a.meta.created));
+      return Right(result);
     } catch (e) {
       return Left(UseCaseFailure('Getting elemens failed: $e'));
     }

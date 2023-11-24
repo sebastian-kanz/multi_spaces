@@ -27,6 +27,7 @@ import 'package:multi_spaces/bucket/domain/usecase/listen_request_events_usecase
 import 'package:multi_spaces/bucket/domain/usecase/request_participation_usecase.dart';
 import 'package:multi_spaces/bucket/domain/usecase/sync_elements_usecase.dart';
 import 'package:multi_spaces/bucket/domain/usecase/sync_history_usecase.dart';
+import 'package:multi_spaces/bucket/domain/usecase/update_element_usecase.dart';
 import 'package:multi_spaces/core/env/Env.dart';
 import 'package:multi_spaces/core/error/failures.dart';
 import 'package:multi_spaces/core/utils/logger.util.dart';
@@ -57,6 +58,7 @@ class BucketBloc extends HydratedBloc<BucketEvent, BucketState> {
   final GetActiveRequestsUseCase _getActiveRequestsUseCase;
   final AddDeviceParticipationUseCase _addDeviceParticipationUseCase;
   final KeysExistingUseCase _keysExistingUseCase;
+  final UpdateElementUseCase _updateElementUseCase;
   final TransactionBloc _transactionBloc;
   final _logger = getLogger();
   StreamSubscription? _elementEventsSubscription;
@@ -88,6 +90,7 @@ class BucketBloc extends HydratedBloc<BucketEvent, BucketState> {
     required ListenParticipationEventsUseCase listenParticipationEventsUseCase,
     required ListenRequestEventsUseCase listenRequestEventsUseCase,
     required KeysExistingUseCase keysExistingUseCase,
+    required UpdateElementUseCase updateElementUseCase,
     required TransactionBloc transactionBloc,
     required String bucketName,
     required String tenant,
@@ -110,6 +113,7 @@ class BucketBloc extends HydratedBloc<BucketEvent, BucketState> {
         _listenParticipationEventsUseCase = listenParticipationEventsUseCase,
         _listenRequestEventsUseCase = listenRequestEventsUseCase,
         _keysExistingUseCase = keysExistingUseCase,
+        _updateElementUseCase = updateElementUseCase,
         _transactionBloc = transactionBloc,
         _bucketName = bucketName,
         _tenant = tenant,
@@ -125,6 +129,8 @@ class BucketBloc extends HydratedBloc<BucketEvent, BucketState> {
     on<CreateElementEvent>(_onCreateElementEvent);
     on<AddRequestorEvent>(_onAddRequestorEvent);
     on<AcceptLatestRequestorEvent>(_onAcceptLatestRequestorEvent);
+    on<RenameElementEvent>(_onRenameElementEvent);
+    on<UpdateElementEvent>(_onUpdateElementEvent);
   }
   @override
   String get id =>
@@ -367,7 +373,11 @@ class BucketBloc extends HydratedBloc<BucketEvent, BucketState> {
           case UpdateElementEventEntity:
             {
               _logger.d("Received event: UpdateElementEventEntity");
-              add(GetElementsEvent(parents: state.parents));
+              add(
+                UpdateElementEvent(
+                  (elementEvent as UpdateElementEventEntity).previousElement,
+                ),
+              );
               break;
             }
           case DeleteElementEventEntity:
@@ -609,8 +619,11 @@ class BucketBloc extends HydratedBloc<BucketEvent, BucketState> {
         _logger.d("Updated $count element(s).");
       }
 
-      final fullElementsResult = await _getFullElementsUseCase
-          .call(GetFullElementsUseCaseParams(true, parents));
+      final fullElementsResult =
+          await _getFullElementsUseCase.call(GetFullElementsUseCaseParams(
+        true,
+        parents,
+      ));
       if (fullElementsResult.isLeft()) {
         throw (fullElementsResult as Left<Failure, List<FullElementEntity>>)
             .value;
@@ -666,6 +679,77 @@ class BucketBloc extends HydratedBloc<BucketEvent, BucketState> {
               (activeRequests as Right<Failure, List<EthereumAddress>>).value,
         ),
       );
+    } catch (e) {
+      _logger.e(e);
+      if (e is Failure) {
+        emit(state.copyWith(status: BucketStatus.failure, error: e));
+      } else {
+        emit(
+          state.copyWith(
+            status: BucketStatus.failure,
+            error: BlocFailure(
+              e.toString(),
+            ),
+          ),
+        );
+      }
+    }
+  }
+
+  void _onRenameElementEvent(
+    RenameElementEvent event,
+    Emitter<BucketState> emit,
+  ) async {
+    try {
+      emit(
+        state.copyWith(
+          status: BucketStatus.loading,
+          parents: state.parents,
+        ),
+      );
+      final result = await _updateElementUseCase.call(
+        UpdateElementUseCaseParams(
+          event.element,
+          event.newName,
+        ),
+      );
+      _transactionBloc.add(
+        TransactionSubmittedEvent(
+          transaction: NamedTransaction(
+            hash: (result as Right<Failure, String>).value,
+            description: "Rename element",
+          ),
+        ),
+      );
+    } catch (e) {
+      _logger.e(e);
+      if (e is Failure) {
+        emit(state.copyWith(status: BucketStatus.failure, error: e));
+      } else {
+        emit(
+          state.copyWith(
+            status: BucketStatus.failure,
+            error: BlocFailure(
+              e.toString(),
+            ),
+          ),
+        );
+      }
+    }
+  }
+
+  void _onUpdateElementEvent(
+    UpdateElementEvent event,
+    Emitter<BucketState> emit,
+  ) async {
+    try {
+      // final result = await _updateElementUseCase.call(
+      //   UpdateElementUseCaseParams(
+      //     event.element.,
+      //     refreshOnly: true,
+      //   ),
+      // );
+      add(GetElementsEvent(parents: state.parents));
     } catch (e) {
       _logger.e(e);
       if (e is Failure) {

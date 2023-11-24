@@ -45,7 +45,7 @@
   },
   {
     "inputs": [],
-    "name": "baseFee",
+    "name": "BASE_FEE",
     "outputs": [
       {
         "internalType": "uint256",
@@ -58,7 +58,20 @@
   },
   {
     "inputs": [],
-    "name": "baseLimit",
+    "name": "BASE_LIMIT",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "LIMIT_PRICE",
     "outputs": [
       {
         "internalType": "uint256",
@@ -104,19 +117,6 @@
       }
     ],
     "stateMutability": "payable",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "limitPrice",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
     "type": "function"
   },
   {

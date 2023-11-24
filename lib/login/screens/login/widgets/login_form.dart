@@ -1,12 +1,10 @@
 import 'dart:io';
 
-import 'package:awesome_dialog/awesome_dialog.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/constants.dart';
 import '../bloc/login_bloc.dart';
-import 'custom_button.dart';
 import 'custom_input_field.dart';
 import 'fade_slide_transition.dart';
 
@@ -18,7 +16,7 @@ class LoginForm extends StatelessWidget {
     required this.animation,
   });
 
-  Widget orDivider() {
+  Widget orDivider(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 130, vertical: 8),
       child: Row(
@@ -26,7 +24,7 @@ class LoginForm extends StatelessWidget {
           Flexible(
             child: Container(
               height: 1,
-              color: kBlue,
+              color: Theme.of(context).colorScheme.primary,
             ),
           ),
           const Padding(
@@ -42,7 +40,7 @@ class LoginForm extends StatelessWidget {
           Flexible(
             child: Container(
               height: 1,
-              color: kBlue,
+              color: Theme.of(context).colorScheme.primary,
             ),
           ),
         ],
@@ -50,14 +48,15 @@ class LoginForm extends StatelessWidget {
     );
   }
 
-  Widget _buildLogoButton({
+  Widget _buildLogoButton(
+    BuildContext context, {
     required String image,
     required VoidCallback onPressed,
   }) {
     if (kIsWeb) {
       return FloatingActionButton.extended(
         heroTag: image,
-        backgroundColor: Colors.white,
+        backgroundColor: Theme.of(context).colorScheme.onBackground,
         onPressed: onPressed,
         label: const Text("Connect your wallet"),
         icon: const Icon(Icons.wallet),
@@ -65,7 +64,7 @@ class LoginForm extends StatelessWidget {
     } else if (Platform.isAndroid || Platform.isIOS) {
       return FloatingActionButton(
         heroTag: image,
-        backgroundColor: Colors.white,
+        backgroundColor: Theme.of(context).colorScheme.surfaceVariant,
         onPressed: onPressed,
         child: SizedBox(
           height: 30,
@@ -75,7 +74,7 @@ class LoginForm extends StatelessWidget {
     }
     return FloatingActionButton.extended(
       heroTag: image,
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).colorScheme.onBackground,
       onPressed: onPressed,
       label: const Text("Connect your wallet"),
       icon: const Icon(Icons.wallet),
@@ -84,58 +83,32 @@ class LoginForm extends StatelessWidget {
 
   Widget _buildWalletButton(BuildContext context) {
     return _buildLogoButton(
+      context,
       image: 'assets/images/walletconnect_logo.png',
-      onPressed: () => AwesomeDialog(
-        context: context,
-        dialogType: DialogType.info,
-        showCloseIcon: true,
-        title: "Walletconnect Login",
-        desc: "Either open wallet app or login via qr code.",
-        buttonsBorderRadius: const BorderRadius.all(
-          Radius.circular(2),
-        ),
-        dismissOnTouchOutside: true,
-        dismissOnBackKeyPress: true,
-        onDismissCallback: (type) {
-          if (type != DismissType.btnCancel && type != DismissType.btnOk) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text(
-                  'Login cancelled.',
-                  textAlign: TextAlign.center,
-                ),
-              ),
-            );
-          }
-        },
-        headerAnimationLoop: false,
-        animType: AnimType.scale,
-        btnCancelOnPress: () =>
-            context.read<LoginBloc>().add(const LoginWalletQRSubmitted()),
-        btnCancelText: "Show QR code",
-        btnOkOnPress: () =>
-            context.read<LoginBloc>().add(const LoginWalletSubmitted()),
-        btnOkText: "Open Wallet",
-      ).show(),
+      onPressed: () =>
+          context.read<LoginBloc>().add(const LoginWalletQRSubmitted()),
     );
   }
 
   List<Widget> _buildSocialButtons(BuildContext context) {
     return [
       _buildLogoButton(
+        context,
         image: 'assets/images/google_logo.png',
         onPressed: () =>
             context.read<LoginBloc>().add(const LoginGoogleSubmitted()),
       ),
       _buildLogoButton(
+        context,
         image: 'assets/images/facebook_logo.png',
         onPressed: () =>
             context.read<LoginBloc>().add(const LoginFacebookSubmitted()),
       ),
       _buildLogoButton(
-        image: 'assets/images/twitter_logo.png',
+        context,
+        image: 'assets/images/apple_logo.png',
         onPressed: () =>
-            context.read<LoginBloc>().add(const LoginTwitterSubmitted()),
+            context.read<LoginBloc>().add(const LoginAppleSubmitted()),
       ),
     ];
   }
@@ -199,7 +172,7 @@ class LoginForm extends StatelessWidget {
         FadeSlideTransition(
           animation: animation,
           additionalOffset: 2 * space,
-          child: orDivider(),
+          child: orDivider(context),
         ),
       ];
     }

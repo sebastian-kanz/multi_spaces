@@ -16,6 +16,13 @@ abstract class ElementRepository {
     bool internal = true,
     int? baseFee,
   });
+  Future<String> updateElement(
+    EthereumAddress address,
+    String metaHash,
+    String dataHash,
+    String containerHash,
+    EthereumAddress parent,
+  );
   Future<List<ElementEntity>> getAllLocalElements();
   Future<List<ElementEntity>> getAllLatestLocalRootFolders();
   Future<List<ElementEntity>> getAllLatestLocalRootElements();
@@ -23,4 +30,5 @@ abstract class ElementRepository {
   Future<ElementEntity> getNextVersion();
   Future<ElementEntity> getParent();
   Future<List<ElementEntity>> getLatestChildren({ElementEntity? parent});
+  Future<List<ElementEntity>> getLatest();
 }

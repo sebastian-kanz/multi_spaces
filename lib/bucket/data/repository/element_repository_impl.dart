@@ -88,6 +88,30 @@ class ElementRepositoryImpl
   }
 
   @override
+  Future<String> updateElement(
+    EthereumAddress address,
+    String metaHash,
+    String dataHash,
+    String containerHash,
+    EthereumAddress parent,
+  ) async {
+    return Element(
+      address: address,
+      client: MultiSpaceClient().client,
+      chainId: Env.chain_id,
+    ).update(
+      [metaHash, dataHash, containerHash],
+      parent,
+      credentials:
+          BlockchainProviderManager().internalProvider.getCredentails(),
+      transaction: Transaction(
+        from: BlockchainProviderManager().internalProvider.getAccount(),
+        maxGas: 3000000,
+      ),
+    );
+  }
+
+  @override
   Stream<ElementEventEntity> listenElementRequests(
     EthereumAddress address,
   ) {
@@ -176,6 +200,17 @@ class ElementRepositoryImpl
       print(e);
       rethrow;
     }
+  }
+
+  @override
+  Future<List<ElementEntity>> getLatest() {
+    final entities = box.values
+        .map(
+          (model) => ElementMapper.fromModel(model),
+        )
+        .toList();
+    final latest = entities.where((element) => !element.hasNext()).toList();
+    return Future.value(latest);
   }
 
   @override

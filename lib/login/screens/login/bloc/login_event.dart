@@ -28,8 +28,8 @@ class LoginFacebookSubmitted extends LoginEvent {
   const LoginFacebookSubmitted();
 }
 
-class LoginTwitterSubmitted extends LoginEvent {
-  const LoginTwitterSubmitted();
+class LoginAppleSubmitted extends LoginEvent {
+  const LoginAppleSubmitted();
 }
 
 class LoginWalletSubmitted extends LoginEvent {

@@ -1,4 +1,3 @@
-import 'package:awesome_dialog/awesome_dialog.dart';
 import 'package:blockchain_authentication_repository/blockchain_authentication_repository.dart';
 import 'package:blockchain_repository/blockchain_repository.dart';
 import 'package:flutter/material.dart';
@@ -142,40 +141,41 @@ class LoginPageViewState extends State<LoginPageView>
             );
         }
         if (state.deeplink.isNotEmpty) {
-          AwesomeDialog(
+          showModalBottomSheet(
             context: context,
-            dialogType: DialogType.info,
-            showCloseIcon: true,
-            dismissOnTouchOutside: true,
-            dismissOnBackKeyPress: true,
-            width: width > 400 ? width * 0.6 : width,
-            onDismissCallback: (type) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text(
-                    'Login cancelled.',
-                    textAlign: TextAlign.center,
-                  ),
+            builder: (_) {
+              return Padding(
+                padding: const EdgeInsets.all(16),
+                child: Wrap(
+                  alignment: WrapAlignment.center,
+                  children: [
+                    QrImageView(
+                      data: state.deeplink,
+                      padding: const EdgeInsets.all(80),
+                      eyeStyle: QrEyeStyle(
+                        eyeShape: QrEyeShape.square,
+                        color: Theme.of(context).colorScheme.primary,
+                      ),
+                      dataModuleStyle: QrDataModuleStyle(
+                        dataModuleShape: QrDataModuleShape.square,
+                        color: Theme.of(context).colorScheme.primary,
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    IconButton(
+                      icon: const Icon(Icons.open_in_new),
+                      onPressed: () {
+                        context
+                            .read<LoginBloc>()
+                            .add(const LoginWalletSubmitted());
+                        Navigator.of(context).pop();
+                      },
+                    ),
+                  ],
                 ),
               );
             },
-            headerAnimationLoop: false,
-            animType: AnimType.scale,
-            body: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: kPaddingS),
-              child: Column(
-                children: <Widget>[
-                  const Text("Scan QR code to login."),
-                  const SizedBox(height: kSpaceS),
-                  QrImageView(
-                    data: state.deeplink,
-                    backgroundColor: Theme.of(context).colorScheme.onBackground,
-                  ),
-                  const SizedBox(height: kSpaceS),
-                ],
-              ),
-            ),
-          ).show();
+          );
         }
       },
       builder: (context, state) => Scaffold(
@@ -194,7 +194,7 @@ class LoginPageViewState extends State<LoginPageView>
                 );
               },
               child: Container(
-                color: Theme.of(context).colorScheme.secondary,
+                color: Theme.of(context).colorScheme.primaryContainer,
               ),
             ),
             AnimatedBuilder(
@@ -208,7 +208,7 @@ class LoginPageViewState extends State<LoginPageView>
                 );
               },
               child: Container(
-                color: Theme.of(context).colorScheme.inversePrimary,
+                color: Theme.of(context).colorScheme.secondaryContainer,
               ),
             ),
             AnimatedBuilder(
@@ -222,7 +222,7 @@ class LoginPageViewState extends State<LoginPageView>
                 );
               },
               child: Container(
-                color: Theme.of(context).colorScheme.primary,
+                color: Theme.of(context).colorScheme.tertiaryContainer,
               ),
             ),
             SafeArea(

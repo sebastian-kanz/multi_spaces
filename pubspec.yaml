@@ -19,11 +19,9 @@ dependencies:
 
   cupertino_icons: ^1.0.2
 
-  http: ^1.1.0 # ^0.13.5
+  http: ^1.1.0
   equatable: ^2.0.5
-  # flutter_envify: ^3.0.1
   envied: ^0.3.0+3
-  # walletconnect_dart: ^0.0.11
   walletconnect_flutter_v2: ^2.0.12
   web3dart: 2.7.1 #^2.5.3
   web3auth_flutter: ^1.0.3
@@ -63,7 +61,6 @@ dependencies:
   formz: ^0.4.1
   flutter_secure_storage: ^7.0.1
   modal_bottom_sheet: ^2.1.2
-  awesome_dialog: ^3.0.2
   logger: ^1.1.0
   convert: ^3.1.1
   eth_sig_util: ^0.0.9
@@ -103,7 +100,6 @@ dev_dependencies:
   flutter_lints: ^2.0.0
   analyzer: 
   build_runner:
-  # flutter_envify_generator: 
   envied_generator: ^0.3.0+3
   web3dart_builders: ^0.0.2
   json_serializable: ^6.6.1

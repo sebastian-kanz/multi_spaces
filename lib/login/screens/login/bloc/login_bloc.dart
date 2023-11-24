@@ -26,7 +26,7 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
     on<LoginEmailChanged>(_onEmailChanged);
     on<LoginEmailSubmitted>(_onEmailSubmitted);
     on<LoginFacebookSubmitted>(_onFacebookSubmitted);
-    on<LoginTwitterSubmitted>(_onTwitterSubmitted);
+    on<LoginAppleSubmitted>(_onAppleSubmitted);
     on<LoginGoogleSubmitted>(_onGoogleSubmitted);
     on<LoginWalletSubmitted>(_onWalletSubmitted);
     on<LoginWalletQRSubmitted>(_onWalletQRSubmitted);
@@ -105,14 +105,14 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
     }
   }
 
-  void _onTwitterSubmitted(
-    LoginTwitterSubmitted event,
+  void _onAppleSubmitted(
+    LoginAppleSubmitted event,
     Emitter<LoginState> emit,
   ) async {
     try {
       BlockchainProviderManager().selectProvider<EthereumWeb3AuthProvider>();
       _initRepositories();
-      await _authenticationRepository.logIn({'provider': Provider.twitter});
+      await _authenticationRepository.logIn({'provider': Provider.apple});
       emit(state.copyWith(status: FormzStatus.submissionSuccess));
     } catch (e) {
       logger.e(e);
@@ -129,12 +129,13 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
       _initRepositories();
       await _authenticationRepository.logIn({
         'onDisplayUri': (uri) async {
-          logger.d(uri);
-          if (!await canLaunchUrl(Uri.parse(uri))) {
+          final adaptedUri = Uri.parse("wc://$uri");
+          logger.d(adaptedUri.toString());
+          if (!await canLaunchUrl(adaptedUri)) {
             emit(state.copyWith(status: FormzStatus.submissionFailure));
             return;
           }
-          await launchUrl(Uri.parse(uri));
+          await launchUrl(adaptedUri);
         }
       });
       emit(state.copyWith(status: FormzStatus.submissionSuccess));

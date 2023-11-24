@@ -86,6 +86,7 @@ class SyncElementsUseCase implements UseCase<int, SyncElementsUseCaseParams> {
               }
               break;
             case OperationType.update:
+              // TODO: Also update previous element!
               final nextElement = await elementRepository.getElementEntity(
                 element.nextElement,
               );
@@ -109,6 +110,7 @@ class SyncElementsUseCase implements UseCase<int, SyncElementsUseCaseParams> {
               }
               break;
             case OperationType.updateParent:
+              // TODO: Also update child!
               final parent = await elementRepository.getElementEntity(
                 element.parentElement,
               );
@@ -130,6 +132,7 @@ class SyncElementsUseCase implements UseCase<int, SyncElementsUseCaseParams> {
               }
               break;
             case OperationType.delete:
+              // TODO: What to do with children?
               if (params.deleteData) {
                 final meta = await metaRepository.getMeta(
                   element.metaHash,

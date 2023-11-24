@@ -274,10 +274,6 @@ class SpacePageViewState extends State<SpacePageView> {
                     );
                   },
                 ),
-                IconButton(
-                  icon: const Icon(Icons.search),
-                  onPressed: () {},
-                )
               ],
             ),
           ),
@@ -348,8 +344,8 @@ class SpacePageViewState extends State<SpacePageView> {
           motion: const BehindMotion(),
           children: [
             SlideAction(
-              foregroundColor: Theme.of(context).colorScheme.onPrimary,
-              backgroundColor: Theme.of(context).colorScheme.primary,
+              foregroundColor: Theme.of(context).colorScheme.outline,
+              backgroundColor: Theme.of(context).colorScheme.outlineVariant,
               icon: Icons.share,
               fct: (context) => showModalBottomSheet(
                 context: context,
@@ -397,8 +393,8 @@ class SpacePageViewState extends State<SpacePageView> {
               foregroundColor: Theme.of(context).colorScheme.secondary,
               backgroundColor: Theme.of(context).colorScheme.onSecondary,
               icon: Icons.change_circle,
-              fct: (_) {
-                displayTextInputDialog(
+              fct: (_) async {
+                await displayTextInputDialog(
                   context,
                   'Rename Bucket',
                   'Rename',
@@ -415,6 +411,13 @@ class SpacePageViewState extends State<SpacePageView> {
                   },
                   initialValue: state.buckets[index].name,
                 );
+                ScaffoldMessenger.of(context)
+                  ..hideCurrentSnackBar()
+                  ..showSnackBar(
+                    const SnackBar(
+                      content: Text("Please confirm transaction."),
+                    ),
+                  );
               },
               label: 'Rename',
             ),

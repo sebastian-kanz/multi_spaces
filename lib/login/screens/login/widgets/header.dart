@@ -20,7 +20,7 @@ class Header extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
           Logo(
-            color: Theme.of(context).colorScheme.onPrimary,
+            color: Theme.of(context).colorScheme.onTertiaryContainer,
             size: 48.0,
           ),
           const SizedBox(height: kSpaceM),
@@ -29,8 +29,8 @@ class Header extends StatelessWidget {
             additionalOffset: 0.0,
             child: Text(
               'Welcome to MultiSpaces',
-              style: Theme.of(context).textTheme.headline5!.copyWith(
-                    color: Theme.of(context).colorScheme.onPrimary,
+              style: Theme.of(context).textTheme.headlineSmall!.copyWith(
+                    color: Theme.of(context).colorScheme.onTertiaryContainer,
                     fontWeight: FontWeight.bold,
                   ),
             ),
@@ -41,7 +41,9 @@ class Header extends StatelessWidget {
             additionalOffset: 16.0,
             child: Text(
               'Own your data.',
-              style: Theme.of(context).textTheme.subtitle1!.copyWith(),
+              style: Theme.of(context).textTheme.titleMedium!.copyWith(
+                    color: Theme.of(context).colorScheme.onTertiaryContainer,
+                  ),
             ),
           ),
         ],
