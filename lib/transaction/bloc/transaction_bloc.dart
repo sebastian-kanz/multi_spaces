@@ -4,7 +4,6 @@ import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:multi_spaces/core/networking/MultiSpaceClient.dart';
 import 'package:multi_spaces/core/utils/logger.util.dart';
-import 'package:web3dart/crypto.dart';
 import 'package:web3dart/web3dart.dart';
 
 part 'transaction_event.dart';

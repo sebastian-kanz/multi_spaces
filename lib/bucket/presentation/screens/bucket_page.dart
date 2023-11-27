@@ -460,7 +460,7 @@ class BucketPageView extends StatelessWidget {
                               style: const TextStyle(
                                 fontWeight: FontWeight.bold,
                               ),
-                              textScaleFactor: 0.8,
+                              textScaler: const TextScaler.linear(0.8),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                             ),
@@ -529,7 +529,7 @@ class BucketPageView extends StatelessWidget {
                               children: [
                                 Text(
                                   description,
-                                  textScaleFactor: 0.8,
+                                  textScaler: const TextScaler.linear(0.8),
                                 ),
                                 const LinearProgressIndicator(),
                               ],
@@ -580,7 +580,7 @@ class BucketPageView extends StatelessWidget {
                                 children: [
                                   Text(
                                     "Looks empty here...",
-                                    textScaleFactor: 1.3,
+                                    textScaler: TextScaler.linear(1.3),
                                     style:
                                         TextStyle(fontWeight: FontWeight.bold),
                                   ),
@@ -606,7 +606,7 @@ class BucketPageView extends StatelessWidget {
                               leading: const Icon(Icons.sync),
                               title: Text(
                                 state.newElement!,
-                                textScaleFactor: 2,
+                                textScaler: const TextScaler.linear(2),
                               ),
                               subtitle: Text(
                                 DateFormat('dd/MM/yy, HH:mm')
@@ -785,7 +785,7 @@ class BucketListTile extends StatelessWidget {
         state.elements[index].meta.name,
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
-        textScaleFactor: 2,
+        textScaler: const TextScaler.linear(2),
       ),
       onTap: () => BlocProvider.of<BucketBloc>(context).add(GetElementsEvent(
         parents: [...state.parents, state.elements[index]],

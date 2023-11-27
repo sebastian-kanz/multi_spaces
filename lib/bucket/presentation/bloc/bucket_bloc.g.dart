@@ -31,6 +31,7 @@ BucketState _$BucketStateFromJson(Map<String, dynamic> json) => BucketState(
       error: _errorFromJson(json['error'] as Map<String, dynamic>),
       epoch: json['epoch'] as int?,
       newElement: json['newElement'] as String? ?? null,
+      confirmTx: json['confirmTx'] as bool? ?? false,
     );
 
 Map<String, dynamic> _$BucketStateToJson(BucketState instance) =>
@@ -45,6 +46,7 @@ Map<String, dynamic> _$BucketStateToJson(BucketState instance) =>
       'error': _errorToJson(instance.error),
       'epoch': instance.epoch,
       'newElement': instance.newElement,
+      'confirmTx': instance.confirmTx,
     };
 
 const _$BucketStatusEnumMap = {

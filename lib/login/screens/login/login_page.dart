@@ -130,7 +130,6 @@ class LoginPageViewState extends State<LoginPageView>
 
   @override
   Widget build(BuildContext context) {
-    final width = MediaQuery.of(context).size.width;
     return BlocConsumer<LoginBloc, LoginState>(
       listener: (context, state) {
         if (state.status.isSubmissionFailure) {
@@ -162,14 +161,22 @@ class LoginPageViewState extends State<LoginPageView>
                       ),
                     ),
                     const SizedBox(height: 20),
-                    IconButton(
-                      icon: const Icon(Icons.open_in_new),
-                      onPressed: () {
-                        context
-                            .read<LoginBloc>()
-                            .add(const LoginWalletSubmitted());
-                        Navigator.of(context).pop();
-                      },
+                    Column(
+                      children: [
+                        IconButton(
+                          icon: const Icon(Icons.open_in_new),
+                          onPressed: () {
+                            context
+                                .read<LoginBloc>()
+                                .add(const LoginWalletSubmitted());
+                            Navigator.of(context).pop();
+                          },
+                        ),
+                        const Text(
+                          "Open app",
+                          textScaler: TextScaler.linear(0.8),
+                        )
+                      ],
                     ),
                   ],
                 ),

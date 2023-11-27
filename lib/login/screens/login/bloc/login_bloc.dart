@@ -45,6 +45,7 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
     emit(state.copyWith(
       email: email,
       status: Formz.validate([email]),
+      deeplink: "",
     ));
   }
 

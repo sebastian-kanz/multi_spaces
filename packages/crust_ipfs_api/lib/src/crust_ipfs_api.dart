@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'dart:typed_data';
 import 'package:cid/cid.dart';
 import 'package:http/http.dart' as http;
@@ -6,7 +5,6 @@ import 'dart:convert';
 
 import 'package:ipfs_api/ipfs_api.dart';
 import 'package:logger/logger.dart';
-import 'package:retry/retry.dart';
 
 class CrustIpfsApi extends IpfsApi {
   CrustIpfsApi({

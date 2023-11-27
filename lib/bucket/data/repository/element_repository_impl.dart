@@ -51,20 +51,6 @@ class ElementRepositoryImpl
   }
 
   @override
-  Future<List<ElementEntity>> getAllLatestLocalElements(parent) async {
-    final entities = box.values
-        .map(
-          (model) => ElementMapper.fromModel(model),
-        )
-        .toList();
-    final latest = entities.where((element) => !element.hasNext()).toList();
-    final elements = latest
-        .where((element) => !element.hasParent() && element.dataHash != "")
-        .toList();
-    return Future.value(elements);
-  }
-
-  @override
   Future<List<ElementEntity>> getAllLatestLocalRootFolders() async {
     final entities = box.values
         .map(

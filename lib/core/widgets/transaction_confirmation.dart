@@ -25,13 +25,13 @@ class _TransactionConfirmationState extends State<TransactionConfirmation> {
     return FractionallySizedBox(
       heightFactor: 0.5,
       child: Padding(
-        padding: EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(16.0),
         child: Center(
           child: Column(
             children: [
-              Text(
+              const Text(
                 "This action requires your confirmation:",
-                textScaleFactor: 1.4,
+                textScaler: TextScaler.linear(1.4),
                 style: TextStyle(fontWeight: FontWeight.bold),
                 textAlign: TextAlign.center,
               ),
@@ -41,15 +41,15 @@ class _TransactionConfirmationState extends State<TransactionConfirmation> {
               SwipeableButtonView(
                 buttonText: 'SLIDE TO CONFIRM',
                 buttonWidget: Container(
-                  child: Icon(
+                  child: const Icon(
                     Icons.arrow_forward_ios_rounded,
                     color: Colors.grey,
                   ),
                 ),
-                activeColor: Color(0xFF009C41),
+                activeColor: const Color(0xFF009C41),
                 isFinished: finished,
                 onWaitingProcess: () {
-                  Future.delayed(Duration(milliseconds: 400), () {
+                  Future.delayed(const Duration(milliseconds: 400), () {
                     widget.callback();
                     setState(() {
                       finished = true;

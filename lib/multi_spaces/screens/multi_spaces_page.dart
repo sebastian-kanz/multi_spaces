@@ -1,4 +1,3 @@
-import 'package:blockchain_provider/blockchain_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -6,7 +5,6 @@ import 'package:multi_spaces/core/utils/input_dialog.dart';
 import 'package:multi_spaces/core/widgets/carousel.dart';
 import 'package:multi_spaces/multi_spaces/bloc/multi_spaces_bloc.dart';
 import 'package:multi_spaces/multi_spaces/repository/multi_spaces_repository.dart';
-import 'package:multi_spaces/payment/bloc/payment_bloc.dart';
 import 'package:multi_spaces/space/screens/space_page.dart';
 import 'package:multi_spaces/core/widgets/nav_drawer.dart';
 import 'package:provider/provider.dart';

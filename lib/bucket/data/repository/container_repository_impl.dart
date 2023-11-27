@@ -5,7 +5,6 @@ import 'package:multi_spaces/bucket/data/mapper/container_mapper.dart';
 import 'package:multi_spaces/bucket/data/models/container_model.dart';
 import 'package:multi_spaces/bucket/domain/entity/container_entity.dart';
 import 'package:multi_spaces/bucket/domain/repository/container_repository.dart';
-import 'package:multi_spaces/core/error/failures.dart';
 import 'package:multi_spaces/core/repository/initializable_storage_repository.dart';
 import 'package:uuid/uuid.dart';
 

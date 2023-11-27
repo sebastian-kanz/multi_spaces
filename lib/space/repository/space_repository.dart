@@ -1,5 +1,4 @@
 import 'package:blockchain_provider/blockchain_provider.dart';
-import 'package:dartz/dartz.dart';
 import 'package:multi_spaces/core/contracts/Space.g.dart';
 import 'package:multi_spaces/core/env/Env.dart';
 import 'package:multi_spaces/space/models/bucket_instance_model.dart';

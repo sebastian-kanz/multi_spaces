@@ -1,7 +1,6 @@
 import 'dart:async';
 import '../../../core/usecases/usecase.dart';
 import '../repository/bucket_repository.dart';
-import 'package:async/async.dart' show StreamGroup;
 
 class ListenKeyEventsUseCase implements StreamUseCase<int, void> {
   final BucketRepository repository;

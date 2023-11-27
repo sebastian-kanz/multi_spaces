@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:blockchain_provider/blockchain_provider.dart';
 import 'package:dartz/dartz.dart';
 import 'package:multi_spaces/bucket/domain/repository/bucket_repository.dart';
 import 'package:multi_spaces/bucket/domain/repository/ipfs_vault_repository.dart';

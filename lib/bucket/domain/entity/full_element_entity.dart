@@ -2,7 +2,6 @@ import 'package:multi_spaces/bucket/domain/entity/container_entity.dart';
 import 'package:multi_spaces/bucket/domain/entity/data_entity.dart';
 import 'package:multi_spaces/bucket/domain/entity/element_entity.dart';
 import 'package:multi_spaces/bucket/domain/entity/meta_entity.dart';
-import 'package:web3dart/web3dart.dart';
 
 class FullElementEntity {
   final ElementEntity element;

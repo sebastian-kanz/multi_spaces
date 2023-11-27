@@ -7,7 +7,6 @@ import 'package:ipfs_api/ipfs_api.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
 import 'crust_ipfs_api_test.mocks.dart';
-import 'dart:convert';
 
 class TestInfuraIpfsApi extends CrustIpfsApi {
   TestInfuraIpfsApi() : super(address: "", signature: "");

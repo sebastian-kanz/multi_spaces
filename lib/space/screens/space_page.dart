@@ -182,7 +182,7 @@ class SpacePageViewState extends State<SpacePageView> {
                 builder: (context, state) {
                   if (state.runtimeType == SpaceInitialized) {
                     if ((state as SpaceInitialized).buckets.isEmpty) {
-                      return SizedBox(
+                      return const SizedBox(
                         height: 200,
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.center,
@@ -190,7 +190,7 @@ class SpacePageViewState extends State<SpacePageView> {
                           children: [
                             Text(
                               "Looks empty here...",
-                              textScaleFactor: 1.3,
+                              textScaler: TextScaler.linear(1.3),
                               style: TextStyle(fontWeight: FontWeight.bold),
                             ),
                             Text(
@@ -294,7 +294,7 @@ class SpacePageViewState extends State<SpacePageView> {
             children: [
               const Text(
                 "Adding external bucket to your space:",
-                textScaleFactor: 1.4,
+                textScaler: TextScaler.linear(1.4),
               ),
               const SizedBox(height: 40),
               Text(externalBucketToAdd.hex),
@@ -472,7 +472,7 @@ class SpaceListTile extends StatelessWidget {
       trailing: const Icon(Icons.keyboard_arrow_right),
       title: Text(
         spaceState.buckets[index].name,
-        textScaleFactor: 1.2,
+        textScaler: const TextScaler.linear(1.2),
       ),
       onTap: () => Navigator.pushNamed(
         context,

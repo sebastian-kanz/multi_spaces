@@ -35,7 +35,7 @@ class MultiSpacesRepository {
   }
 
   Future<String> createSpace(String name) async {
-    final baseFee = await _multiSpaces.baseFee();
+    final baseFee = await _multiSpaces.BASE_FEE();
     final account =
         BlockchainProviderManager().authenticatedProvider!.getAccount();
     final balance = await _client.getBalance(account);

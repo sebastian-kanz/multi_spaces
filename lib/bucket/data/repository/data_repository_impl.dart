@@ -6,7 +6,6 @@ import 'package:multi_spaces/bucket/domain/entity/data_entity.dart';
 import 'package:multi_spaces/bucket/domain/repository/data_repository.dart';
 import 'package:multi_spaces/bucket/domain/repository/ipfs_vault_repository.dart';
 import 'package:multi_spaces/core/error/failures.dart';
-import 'package:web3dart/web3dart.dart';
 
 class DataRepositoryImpl implements DataRepository {
   final IPFSVaultRepository _ipfsVaultRepository;

@@ -8,7 +8,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:multi_spaces/authentication/bloc/authentication_bloc.dart';
 import 'package:multi_spaces/bucket/presentation/screens/bucket_page.dart';
 import 'package:multi_spaces/core/blockchain_repository/internal_blockchain_repository.dart';
-import 'package:multi_spaces/core/constants.dart';
 import 'package:multi_spaces/core/theme/cubit/theme_cubit.dart';
 import 'package:multi_spaces/login/screens/login/login_page.dart';
 import 'package:multi_spaces/multi_spaces/repository/multi_spaces_repository.dart';

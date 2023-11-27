@@ -1,6 +1,5 @@
 import 'dart:typed_data';
 
-import 'package:blockchain_provider/blockchain_provider.dart';
 import 'package:multi_spaces/bucket/domain/entity/element_entity.dart';
 import 'package:multi_spaces/bucket/domain/entity/element_event_entity.dart';
 import 'package:multi_spaces/bucket/domain/entity/key_bundle_entity.dart';
